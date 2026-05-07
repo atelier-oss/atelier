@@ -2,28 +2,62 @@
 
 > **v0 generates. Cursor edits. Atelier enforces.**
 
-Design-token toolkit for projects using [`DESIGN.md`](https://github.com/google-labs-code/design.md) — the Google Labs spec for lint-checkable design tokens.
+Design-token toolkit for projects using [`DESIGN.md`](https://github.com/google-labs-code/design.md) — the Google Labs spec for lint-checkable design tokens. Atelier wraps the upstream linter, layers on a precedence rule and a canonical sub-token vocabulary, and ships a CLI, a project audit, a build-category atlas, and an MCP server.
 
-**Phase 2 in progress.** Final README + headline number ships in Phase 2.8.
+## Why
 
-## Headline number (preliminary, MVB)
+Tokens drift across projects when there's no machine-checkable contract. AI agents and humans both grab whatever colors are available — usually raw Tailwind palette refs (`bg-zinc-900`) instead of named semantic tokens (`bg-foreground`). Adding a `DESIGN.md` to a project changes that:
 
-DESIGN.md repos hit **79.9%** semantic-token conformance vs **39.0%** for control repos — a **+105.1% relative lift** in observed token usage.
-
-Source: `benchmarks/results/2026-05-07-mvb.md` (4 + 4 repos, observational, full Phase 1 expands to 30 repos before public launch).
+> **+105.1% relative lift** in semantic-token conformance.
+> 79.9% in DESIGN.md repos vs. 39.0% in control. Source: [`benchmarks/results/2026-05-07-mvb.md`](./benchmarks/results/2026-05-07-mvb.md).
+> *(MVB scope: 4 + 4 repos, observational. Full Phase 1 expands to 30 repos before public launch.)*
 
 ## Packages
 
-| Package               | Status   |
-| --------------------- | -------- |
-| `@atelier/cli`        | scaffold |
-| `@atelier/lint`       | scaffold |
-| `@atelier/classify`   | scaffold |
-| `@atelier/atlas`      | scaffold |
-| `@atelier/audit`      | scaffold |
-| `@atelier/mcp-server` | scaffold |
+| Package | Role |
+|---|---|
+| [`@atelier/cli`](./packages/cli) | `atelier init` / `lint` / `classify` / `audit` / `atlas` — the everyday binary |
+| [`@atelier/lint`](./packages/lint) | Wraps [`@google/design.md@0.1.1`](https://www.npmjs.com/package/@google/design.md) (Apache-2.0) and adds the precedence rule + 8 canonical sub-token roles |
+| [`@atelier/classify`](./packages/classify) | Token-vs-raw scorer — the engine behind the +105% number |
+| [`@atelier/atlas`](./packages/atlas) | Fingerprint a project, get a build-category default-DNA — 7 categories: saas-dashboard, multi-llm-synthesis, marketing-landing, conversational-agent-ui, internal-ops, trading-analytics, marketplace-listing |
+| [`@atelier/audit`](./packages/audit) | 6-section project audit: token usage, contrast, motion, accessibility, design coverage, responsive |
+| [`@atelier/mcp-server`](./packages/mcp-server) | MCP stdio server exposing the above as `atelier_lint` / `atelier_classify` / `atelier_audit` / `atelier_atlas_fingerprint` |
 
-See [`CLAUDE.md`](./CLAUDE.md) for repo layout and conventions.
+Each package ships independently via [changesets](https://github.com/changesets/changesets).
+
+## Quickstart
+
+```bash
+# Install the CLI globally
+npm install -g @atelier/cli
+
+# In a project root
+atelier init                                  # writes a starter DESIGN.md
+atelier lint DESIGN.md                        # validates token contract
+atelier classify . --format=json              # scores token conformance
+atelier atlas list                            # show known build categories
+atelier audit                                 # six-section project audit
+```
+
+## The spec
+
+Read [`spec/DESIGN.md.spec.md`](./spec/DESIGN.md.spec.md) for:
+
+1. **Fork notice** — Atelier extends `@google/design.md@0.1.1` (Apache-2.0); extensions are MIT.
+2. **Precedence rule** — `explicit > atlas > palette`. Project-local DESIGN.md beats atlas defaults; atlas defaults beat raw Tailwind palette.
+3. **8 canonical sub-token roles** — `background`, `foreground`, `primary`, `primary-foreground`, `accent`, `muted`, `border`, `ring`. Chosen empirically from 4 production DESIGN.md files.
+4. **Lint contract** — finding codes `ATELIER_PRECEDENCE_VIOLATION` (warning) and `ATELIER_MISSING_ROLE` (info).
+
+## Status
+
+**Phase 2 complete.** Public launch (npm publish, GitHub org provisioning, upstream PR open) deferred to Phase 3, gated on the 30-repo benchmark expansion clearing the +40% lift threshold.
+
+The kept-alive MVB lives at [`benchmarks/`](./benchmarks/). Re-run anytime:
+
+```bash
+python3 -m benchmarks.runner       # corpus walk + scoring
+python3 -m benchmarks.parity_check # 60/60 oracle for @atelier/classify TS port
+```
 
 ## License
 
