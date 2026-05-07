@@ -17,8 +17,11 @@ export const VERSION = '0.0.0';
 export const UPSTREAM_PIN = '0.1.1' as const;
 
 export {
+  ATELIER_MISSING_ROLE,
   ATELIER_PRECEDENCE_VIOLATION,
+  CANONICAL_SUBTOKEN_ROLES,
   type AtelierLintResult,
+  type CanonicalSubtokenRole,
   type Finding,
   type LintDesignMdOptions,
   type LintReport,
@@ -27,6 +30,7 @@ export {
 } from './types';
 
 export { checkPrecedence } from './precedence';
+export { checkSubTokens, extractColorTokenNames } from './sub-tokens';
 
 /** Re-export upstream `lint` for callers who want raw Google output. */
 export { lint as lintUpstream } from '@google/design.md/linter';
