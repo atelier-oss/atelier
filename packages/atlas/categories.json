@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "version": 1,
+  "last_updated": "2026-05-07",
+  "precedence_rule": "Per-project <cwd>/DESIGN.md early-returns. This atlas is fallback only.",
+  "min_signals_for_classification": 3,
+  "categories": [
+    {
+      "slug": "saas-dashboard",
+      "tagline": "Dense info surface for multi-tenant operations — sidebar nav, command palette, data tables, light + dark.",
+      "examples_in_fleet": ["consult-ops", "excerpa", "prettyfly-audit-engine"],
+      "shard_path": "atlas-shards/saas-dashboard.md",
+      "fingerprints": {
+        "files": [
+          "app/(dashboard)/",
+          "lib/queries.ts",
+          "components/ui/button.tsx",
+          "components/ui/data-table.tsx",
+          "app/login/",
+          "app/settings/",
+          "app/billing/",
+          "middleware.ts"
+        ],
+        "deps": [
+          "cmdk",
+          "@tanstack/react-table",
+          "@tanstack/react-query",
+          "next-themes",
+          "sonner",
+          "react-hook-form",
+          "zod",
+          "@supabase/supabase-js",
+          "recharts"
+        ],
+        "deps_groups": [
+          {
+            "any_of": [
+              "@radix-ui/react-dialog",
+              "@radix-ui/react-select",
+              "@radix-ui/react-tabs"
+            ],
+            "min_count": 5,
+            "match_prefix": "@radix-ui/"
+          }
+        ],
+        "routes": ["/login", "/settings", "/billing"],
+        "schema_patterns": ["tenant_id", "company_id", "org_id"]
+      }
+    },
+    {
+      "slug": "multi-llm-synthesis",
+      "tagline": "Streaming side-by-side model panels with badged identity, per-response confidence, and an aggregator/Chairman synthesis surface.",
+      "examples_in_fleet": ["advisory-board"],
+      "shard_path": "atlas-shards/multi-llm-synthesis.md",
+      "fingerprints": {
+        "files": [
+          "lib/llm-clients/",
+          "lib/providers/",
+          "lib/synthesis/",
+          "app/api/synthesize/",
+          "app/api/evaluate/",
+          "app/api/models/"
+        ],
+        "deps_groups": [
+          {
+            "any_of": [
+              "openai",
+              "@anthropic-ai/sdk",
+              "@google/generative-ai",
+              "groq-sdk",
+              "@mistralai/mistralai",
+              "cohere-ai"
+            ],
+            "min_count": 3,
+            "label": "≥3 LLM SDKs side-by-side"
+          }
+        ],
+        "deps": ["ai", "@openrouter/ai-sdk-provider"],
+        "code_patterns": [
+          "Promise.allSettled.*models",
+          "streamText\\(",
+          "createStreamableValue",
+          "export const runtime = ['\"]edge['\"]"
+        ],
+        "env_keys_hint": [
+          "OPENAI_API_KEY",
+          "ANTHROPIC_API_KEY",
+          "GROQ_API_KEY",
+          "OPENROUTER_API_KEY"
+        ]
+      }
+    },
+    {
+      "slug": "marketing-landing",
+      "tagline": "Hero-led, photo-driven, single-CTA-per-section pages whose job is to convert one scroll into one tap.",
+      "examples_in_fleet": ["eight12-run-club-website", "1g1f"],
+      "shard_path": "atlas-shards/marketing-landing.md",
+      "fingerprints": {
+        "files": [
+          "app/(marketing)/",
+          "astro.config.mjs",
+          "gatsby-config.js",
+          "public/og-",
+          "public/hero-"
+        ],
+        "deps": [
+          "framer-motion",
+          "@vercel/og",
+          "astro",
+          "gatsby",
+          "sharp",
+          "@studio-freight/lenis"
+        ],
+        "routes": ["/", "/pricing", "/about", "/contact"],
+        "anti_signals": [
+          "app/(dashboard)/",
+          "middleware.ts",
+          "supabase/migrations/",
+          "@supabase/supabase-js"
+        ],
+        "code_patterns": ["generateMetadata", "<section", "next/image"]
+      }
+    },
+    {
+      "slug": "conversational-agent-ui",
+      "tagline": "Asymmetric bubble threads with inline tool-use, slash commands, and surfaced approval gates.",
+      "examples_in_fleet": ["mike-lawdbot", "gravity-claw", "paperclip"],
+      "shard_path": "atlas-shards/conversational-agent-ui.md",
+      "fingerprints": {
+        "files": [
+          "app/api/chat/route.ts",
+          "slash-commands.ts",
+          "tools.ts",
+          "tools/",
+          "workspace/SOUL.md",
+          "workspace/USER.md",
+          "heartbeat_"
+        ],
+        "deps": [
+          "ai",
+          "@ai-sdk/anthropic",
+          "@ai-sdk/openai",
+          "@anthropic-ai/sdk",
+          "react-markdown",
+          "shiki",
+          "node-telegram-bot-api",
+          "python-telegram-bot",
+          "telegraf",
+          "discord.js"
+        ],
+        "code_patterns": [
+          "useChat",
+          "streamText.*tools",
+          "messages\\.map.*role.*user",
+          "/webhook"
+        ]
+      }
+    },
+    {
+      "slug": "trading-analytics",
+      "tagline": "Dark-default, dense, real-time — charts dominate, color is reserved for state.",
+      "examples_in_fleet": ["sportsbook-edge", "rainman"],
+      "shard_path": "atlas-shards/trading-analytics.md",
+      "fingerprints": {
+        "files": [
+          "lib/marketData/",
+          "lib/positions/",
+          "lib/signals/",
+          "app/api/ohlcv",
+          "app/api/ticker",
+          "app/api/positions",
+          "app/(trading)",
+          "app/tracker",
+          "app/bankroll"
+        ],
+        "deps": [
+          "lightweight-charts",
+          "tradingview/charting_library",
+          "recharts",
+          "ccxt",
+          "binance-api-node",
+          "technicalindicators",
+          "ta-lib",
+          "bullmq",
+          "ioredis",
+          "decimal.js",
+          "bignumber.js"
+        ],
+        "code_patterns": [
+          "tabular-nums",
+          "font-variant-numeric: tabular-nums",
+          "Intl\\.NumberFormat",
+          "BRIN",
+          "EventSource"
+        ],
+        "env_keys_hint": [
+          "BINANCE_API_KEY",
+          "COINBASE_",
+          "KALSHI_",
+          "POLYGON_",
+          "ALPACA_"
+        ]
+      }
+    },
+    {
+      "slug": "internal-ops",
+      "tagline": "Keyboard-first multi-pane command surface for operators — kanban, live event streams, cmd-K dispatch.",
+      "examples_in_fleet": ["prettyfly-os", "antfarm-dashboard"],
+      "shard_path": "atlas-shards/internal-ops.md",
+      "fingerprints": {
+        "files": [
+          "app/(ops)/",
+          "app/(silos)/",
+          "app/agents/",
+          "app/kanban/",
+          "lib/agentEvents.ts",
+          "lib/sse.ts",
+          "components/CmdKPalette.tsx"
+        ],
+        "deps": [
+          "cmdk",
+          "@dnd-kit/core",
+          "@dnd-kit/sortable",
+          "framer-motion",
+          "next-themes",
+          "@supabase/supabase-js",
+          "eventsource-parser",
+          "react-virtuoso",
+          "lucide-react"
+        ],
+        "routes": ["/agents", "/silos", "/kanban", "/admin", "/inbox"],
+        "code_patterns": [
+          "new ReadableStream",
+          "controller\\.enqueue",
+          "agent_events",
+          "cwd_project",
+          "skill_slug"
+        ]
+      }
+    },
+    {
+      "slug": "marketplace-listing",
+      "tagline": "We don't design the page — we design the assets the platform plugs in. Thumbnails win.",
+      "examples_in_fleet": ["gig-generator-outputs"],
+      "shard_path": "atlas-shards/marketplace-listing.md",
+      "fingerprints": {
+        "files": [
+          "gigs/",
+          "listings/",
+          "assets/thumbnails/",
+          "outputs/etsy/",
+          "app-store-assets/",
+          "product-hunt/",
+          "play-store-listing/",
+          "fiverr/",
+          "upwork/"
+        ],
+        "deps": [
+          "sharp",
+          "imagemagick",
+          "pillow",
+          "replicate",
+          "stability-ai",
+          "handlebars",
+          "jinja2"
+        ],
+        "anti_signals": [
+          "next",
+          "vite",
+          "react",
+          "app/page.tsx",
+          "components/ui/"
+        ],
+        "code_patterns": ["render-thumbnails", "\\.template\\.md"]
+      }
+    }
+  ]
+}
