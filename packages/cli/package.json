@@ -30,6 +30,8 @@
     "access": "public"
   },
   "dependencies": {
+    "@atelier/atlas": "workspace:*",
+    "@atelier/audit": "workspace:*",
     "@atelier/classify": "workspace:*",
     "@atelier/lint": "workspace:*",
     "citty": "^0.1.6"

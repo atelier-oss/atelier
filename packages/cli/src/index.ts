@@ -13,6 +13,12 @@ export {
   type RunClassifyOptions,
   type RunClassifyResult,
 } from './commands/classify';
-export { runAtlasList, BUILD_CATEGORIES, type RunAtlasListResult } from './commands/atlas';
+export {
+  runAtlasList,
+  runAtlasFingerprint,
+  type RunAtlasListResult,
+  type RunAtlasFingerprintOptions,
+} from './commands/atlas';
+export { runAudit, type RunAuditOptions, type RunAuditResult } from './commands/audit';
 
 export const VERSION = '0.0.0';

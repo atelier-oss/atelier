@@ -13,6 +13,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { ZodError } from 'zod';
 import {
   atlasInput,
   atlasTool,
@@ -116,8 +117,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
     }
   } catch (e) {
+    if (e instanceof ZodError) {
+      const issues = e.issues.map((i) => ({
+        path: i.path.join('.'),
+        code: i.code,
+        message: i.message,
+      }));
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ ok: false, error: 'invalid input', issues }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+    const message = e instanceof Error ? e.message : String(e);
     return {
-      content: [{ type: 'text', text: `error: ${(e as Error).message}` }],
+      content: [{ type: 'text', text: `error: ${message}` }],
       isError: true,
     };
   }

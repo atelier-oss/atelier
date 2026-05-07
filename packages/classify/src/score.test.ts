@@ -90,6 +90,22 @@ describe('scoreText', () => {
     expect(r.tokens).toBe(2);
     expect(r.raw).toBe(0);
   });
+
+  it('returns conformance=1.0 when every signal is a token', () => {
+    const text = '<div className="bg-foreground text-primary border-border">x</div>';
+    const r = scoreText(text);
+    expect(r.tokens).toBe(3);
+    expect(r.raw).toBe(0);
+    expect(r.conformance).toBe(1);
+  });
+
+  it('returns conformance=0.0 when every signal is raw', () => {
+    const text = '<div className="bg-zinc-900" style={{color:"#FF0000"}}>x</div>';
+    const r = scoreText(text);
+    expect(r.tokens).toBe(0);
+    expect(r.raw).toBeGreaterThanOrEqual(2);
+    expect(r.conformance).toBe(0);
+  });
 });
 
 describe('scoreRepo', () => {

@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { runAtlasList, BUILD_CATEGORIES } from './commands/atlas';
+import { runAtlasList } from './commands/atlas';
 import { runClassify } from './commands/classify';
 import { runInit } from './commands/init';
 import { runLint } from './commands/lint';
@@ -109,7 +109,7 @@ describe('runAtlasList (programmatic)', () => {
   it('lists all 7 categories', () => {
     const r = runAtlasList();
     expect(r.categories.length).toBe(7);
-    expect(BUILD_CATEGORIES).toContain('saas-dashboard');
+    expect(r.categories).toContain('saas-dashboard');
   });
 
   it('emits valid JSON when format=json', () => {

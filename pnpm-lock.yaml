@@ -71,6 +71,12 @@ importers:
 
   packages/cli:
     dependencies:
+      '@atelier/atlas':
+        specifier: workspace:*
+        version: link:../atlas
+      '@atelier/audit':
+        specifier: workspace:*
+        version: link:../audit
       '@atelier/classify':
         specifier: workspace:*
         version: link:../classify

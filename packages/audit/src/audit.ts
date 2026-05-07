@@ -22,7 +22,14 @@ import type {
 
 const HEX_RE = /#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)/g;
 
-const DEFAULTS = {
+/**
+ * Defaults reproduce the behavior of benchmarks/audit_home_dashboard.py
+ * (the prettyfly-os Mission Control home dashboard). For other projects
+ * pass an explicit AuditConfig; on default settings the audit emits a
+ * `target-not-found` info finding when expected paths don't exist so
+ * empty sections aren't mistaken for clean output.
+ */
+const PRETTYFLY_DEFAULTS = {
   componentDir: 'components/home/command-center',
   componentExt: '.tsx',
   designKeywords: ['command-palette', 'pulse-card'],
@@ -43,6 +50,9 @@ const DEFAULTS = {
     { label: 'text-red-400 on command-center cards', rgb: [248, 113, 113] as const },
   ] satisfies ContrastSample[],
 };
+
+/** Backwards-compat alias — kept for callers expecting the old name. */
+const DEFAULTS = PRETTYFLY_DEFAULTS;
 
 function relLuminance(rgb: readonly [number, number, number]): number {
   const parts = rgb.map((c) => {
