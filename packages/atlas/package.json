@@ -1,0 +1,37 @@
+{
+  "name": "@atelier/atlas",
+  "version": "0.0.0",
+  "description": "Build-category atlas — fingerprint a project, get default DESIGN.md DNA + exemplars.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "shards",
+    "categories.json"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./categories.json": "./categories.json"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --target node20",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

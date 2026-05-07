@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+.turbo/
+
+# Test output
+coverage/
+.vitest-cache/
+
+# OS / editor
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Internal-only — not shipped to public
+library/
+benchmarks/results/*.json
+*.db
+*.db-shm
+*.db-wal
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/

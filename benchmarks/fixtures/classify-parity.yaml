@@ -1,0 +1,214 @@
+# 60-case ground-truth fixture for @atelier/classify.
+#
+# Each case: {input, kind?, expected, rationale}
+#   kind:     "class"  (default) — classify_class(input)
+#             "inline"           — extract_inline_colors(input) → raw if any, else none
+#   expected: "token" | "raw" | "none"
+#
+# Both Python (benchmarks/score.py) and TS (@atelier/classify) MUST agree on
+# every row. parity_check.py validates the Python side. classify.test.ts
+# validates the TS side. Phase 2.1 ships when both pass 60/60.
+
+# --- Tailwind palette → RAW (12) ---
+- input: "bg-zinc-900"
+  expected: raw
+  rationale: "Tailwind zinc palette"
+- input: "bg-zinc-50"
+  expected: raw
+  rationale: "Tailwind zinc palette"
+- input: "text-slate-500"
+  expected: raw
+  rationale: "Tailwind slate palette"
+- input: "border-gray-200"
+  expected: raw
+  rationale: "Tailwind gray palette"
+- input: "ring-emerald-500"
+  expected: raw
+  rationale: "Tailwind emerald palette"
+- input: "bg-blue-500/50"
+  expected: raw
+  rationale: "Tailwind palette with opacity modifier"
+- input: "bg-red-400"
+  expected: raw
+  rationale: "Tailwind red palette"
+- input: "shadow-purple-500"
+  expected: raw
+  rationale: "Tailwind palette on shadow prefix"
+- input: "fill-cyan-300"
+  expected: raw
+  rationale: "Tailwind palette on fill prefix"
+- input: "stroke-rose-600"
+  expected: raw
+  rationale: "Tailwind rose palette on stroke"
+- input: "from-violet-700"
+  expected: raw
+  rationale: "Tailwind palette on gradient from"
+- input: "to-pink-200/40"
+  expected: raw
+  rationale: "Tailwind palette gradient with opacity"
+
+# --- Semantic name → TOKEN (10) ---
+- input: "bg-foreground"
+  expected: token
+  rationale: "shadcn semantic token"
+- input: "text-muted-foreground"
+  expected: token
+  rationale: "shadcn semantic token"
+- input: "border-border"
+  expected: token
+  rationale: "shadcn semantic token"
+- input: "bg-background"
+  expected: token
+  rationale: "shadcn semantic token"
+- input: "text-primary"
+  expected: token
+  rationale: "shadcn semantic token"
+- input: "text-pf"
+  expected: token
+  rationale: "PrettyFly project-specific token"
+- input: "bg-card"
+  expected: token
+  rationale: "shadcn semantic token"
+- input: "ring-ring"
+  expected: token
+  rationale: "shadcn semantic token"
+- input: "bg-pf-accent"
+  expected: token
+  rationale: "PrettyFly accent token"
+- input: "border-surface"
+  expected: token
+  rationale: "ConsultOps surface token"
+
+# --- Arbitrary value with var() → TOKEN (5) ---
+- input: "bg-[hsl(var(--pf))]"
+  expected: token
+  rationale: "var() reference inside arbitrary"
+- input: "text-[hsl(var(--ring))]"
+  expected: token
+  rationale: "var() reference"
+- input: "border-[var(--border)]"
+  expected: token
+  rationale: "raw var() reference"
+- input: "ring-[hsl(var(--primary)/0.5)]"
+  expected: token
+  rationale: "var() with opacity in arbitrary"
+- input: "bg-[color:var(--accent)]"
+  expected: token
+  rationale: "color: prefix on var() inside arbitrary"
+
+# --- Arbitrary value with literal → RAW (6) ---
+- input: "bg-[#1a1a1a]"
+  expected: raw
+  rationale: "hex literal in arbitrary value"
+- input: "text-[#ffffff]"
+  expected: raw
+  rationale: "hex literal"
+- input: "border-[hsl(214,100%,16%)]"
+  expected: raw
+  rationale: "hsl literal in arbitrary"
+- input: "ring-[rgb(20,20,20)]"
+  expected: raw
+  rationale: "rgb literal in arbitrary"
+- input: "bg-[rgba(0,0,0,0.5)]"
+  expected: raw
+  rationale: "rgba literal in arbitrary"
+- input: "text-[#abc]"
+  expected: raw
+  rationale: "short-form hex in arbitrary"
+
+# --- Utility values (white/black/transparent/current) → none (5) ---
+- input: "text-white"
+  expected: none
+  rationale: "utility color value, excluded from both directions"
+- input: "bg-black"
+  expected: none
+  rationale: "utility color value"
+- input: "bg-transparent"
+  expected: none
+  rationale: "utility color value"
+- input: "text-current"
+  expected: none
+  rationale: "utility color value"
+- input: "fill-inherit"
+  expected: none
+  rationale: "utility color value"
+
+# --- Same-prefix non-color values → none (8) ---
+- input: "text-xs"
+  expected: none
+  rationale: "size value, not color"
+- input: "text-base"
+  expected: none
+  rationale: "size value"
+- input: "text-lg"
+  expected: none
+  rationale: "size value"
+- input: "text-2xl"
+  expected: none
+  rationale: "size value with numeric prefix"
+- input: "text-left"
+  expected: none
+  rationale: "alignment value"
+- input: "text-center"
+  expected: none
+  rationale: "alignment value"
+- input: "border-solid"
+  expected: none
+  rationale: "border style"
+- input: "border-dashed"
+  expected: none
+  rationale: "border style"
+
+# --- Numeric (border-N, ring-N) → none (3) ---
+- input: "border-2"
+  expected: none
+  rationale: "numeric border width"
+- input: "ring-0"
+  expected: none
+  rationale: "numeric ring width"
+- input: "border-0"
+  expected: none
+  rationale: "numeric border width"
+
+# --- Inline color literals (kind=inline) → raw / none (6) ---
+- input: "color: #1A7BA5"
+  kind: inline
+  expected: raw
+  rationale: "inline hex literal"
+- input: "background: rgba(0,0,0,0.5)"
+  kind: inline
+  expected: raw
+  rationale: "inline rgba literal"
+- input: "fill: hsl(214, 100%, 16%)"
+  kind: inline
+  expected: raw
+  rationale: "inline hsl literal"
+- input: "boxShadow: '0 1px 3px rgb(0 0 0 / 0.1)'"
+  kind: inline
+  expected: raw
+  rationale: "inline rgb literal with modern syntax"
+- input: "borderColor: hsla(195, 72%, 55%, 0.4)"
+  kind: inline
+  expected: raw
+  rationale: "inline hsla literal"
+- input: "no color literal here"
+  kind: inline
+  expected: none
+  rationale: "no inline color literal"
+
+# --- Edge cases (5) ---
+- input: "bg-zinc-800/50"
+  expected: raw
+  rationale: "palette with opacity modifier still raw"
+- input: "ring-foreground/20"
+  expected: token
+  rationale: "semantic with opacity still token"
+- input: "text-emerald"
+  expected: raw
+  rationale: "palette name with no shade defaults to raw"
+- input: "bg-"
+  expected: none
+  rationale: "prefix without value — not classifiable"
+- input: ""
+  expected: none
+  rationale: "empty string"
