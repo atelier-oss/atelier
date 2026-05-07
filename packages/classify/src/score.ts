@@ -219,3 +219,120 @@ export function scoreText(text: string): ScoreResult {
     conformance: total > 0 ? tokens / total : null,
   };
 }
+
+const REPO_EXTENSIONS: ReadonlySet<string> = new Set(['.tsx', '.jsx', '.ts', '.js']);
+const REPO_EXCLUDE_PARTS: ReadonlySet<string> = new Set([
+  'node_modules',
+  'dist',
+  'build',
+  '.next',
+  '.venv',
+  'venv',
+  '.git',
+  '__pycache__',
+  '.turbo',
+  '.cache',
+  'out',
+  'coverage',
+  '.vercel',
+  '_archive',
+]);
+
+export interface RepoScoreOptions {
+  /** Override the file-extension allowlist. Defaults to .tsx/.jsx/.ts/.js. */
+  extensions?: ReadonlySet<string>;
+  /** Override the path-segment exclude set. Merged on top of defaults. */
+  exclude?: ReadonlySet<string>;
+  /** Skip *.test.* / *.spec.* / *.d.ts. Default true. */
+  skipTests?: boolean;
+}
+
+export interface RepoScoreEntry {
+  path: string;
+  tokens: number;
+  raw: number;
+}
+
+export interface RepoScoreResult extends ScoreResult {
+  rootPath: string;
+  filesScanned: number;
+  filesWithSignal: number;
+  perFile: RepoScoreEntry[];
+}
+
+async function* walk(
+  root: string,
+  exclude: ReadonlySet<string>,
+): AsyncGenerator<string> {
+  const { readdir } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  let entries;
+  try {
+    entries = await readdir(root, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (exclude.has(entry.name)) continue;
+    const full = join(root, entry.name);
+    if (entry.isDirectory()) {
+      yield* walk(full, exclude);
+    } else if (entry.isFile()) {
+      yield full;
+    }
+  }
+}
+
+/** Walk a project root and score every TS/JS source file. */
+export async function scoreRepo(
+  rootPath: string,
+  options: RepoScoreOptions = {},
+): Promise<RepoScoreResult> {
+  const { readFile } = await import('node:fs/promises');
+  const { extname } = await import('node:path');
+
+  const extensions = options.extensions ?? REPO_EXTENSIONS;
+  const exclude = options.exclude
+    ? new Set([...REPO_EXCLUDE_PARTS, ...options.exclude])
+    : REPO_EXCLUDE_PARTS;
+  const skipTests = options.skipTests ?? true;
+
+  const perFile: RepoScoreEntry[] = [];
+  let tokens = 0;
+  let raw = 0;
+  let filesScanned = 0;
+  let filesWithSignal = 0;
+
+  for await (const filePath of walk(rootPath, exclude)) {
+    if (!extensions.has(extname(filePath))) continue;
+    const lower = filePath.toLowerCase();
+    if (skipTests && (lower.includes('.test.') || lower.includes('.spec.') || lower.endsWith('.d.ts'))) {
+      continue;
+    }
+    filesScanned++;
+    let text: string;
+    try {
+      text = await readFile(filePath, 'utf-8');
+    } catch {
+      continue;
+    }
+    const s = scoreText(text);
+    if (s.tokens || s.raw) {
+      filesWithSignal++;
+      perFile.push({ path: filePath, tokens: s.tokens, raw: s.raw });
+    }
+    tokens += s.tokens;
+    raw += s.raw;
+  }
+
+  const total = tokens + raw;
+  return {
+    rootPath,
+    tokens,
+    raw,
+    conformance: total > 0 ? tokens / total : null,
+    filesScanned,
+    filesWithSignal,
+    perFile,
+  };
+}

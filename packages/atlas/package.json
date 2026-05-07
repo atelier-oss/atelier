@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean --target node20",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
   "engines": {

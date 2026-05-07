@@ -5,14 +5,16 @@
  * Phase 2.1 ships when this passes 60/60 AND the Python parity oracle does too.
  */
 
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { dirname, resolve, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import {
   classifyClass,
   extractInlineColors,
+  scoreRepo,
   scoreText,
   type Verdict,
 } from './score';
@@ -87,5 +89,36 @@ describe('scoreText', () => {
     const r = scoreText(text);
     expect(r.tokens).toBe(2);
     expect(r.raw).toBe(0);
+  });
+});
+
+describe('scoreRepo', () => {
+  it('walks .tsx/.ts files, skips node_modules and tests', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'atelier-classify-'));
+    mkdirSync(join(root, 'src'), { recursive: true });
+    mkdirSync(join(root, 'node_modules', 'lib'), { recursive: true });
+
+    writeFileSync(join(root, 'src', 'a.tsx'), '<div className="bg-foreground">a</div>');
+    writeFileSync(join(root, 'src', 'b.tsx'), '<div className="bg-zinc-900">b</div>');
+    writeFileSync(join(root, 'src', 'b.test.tsx'), '<div className="bg-blue-500">test</div>');
+    writeFileSync(join(root, 'node_modules', 'lib', 'c.tsx'), '<div className="bg-red-500">x</div>');
+
+    const r = await scoreRepo(root);
+    expect(r.filesScanned).toBe(2); // a.tsx + b.tsx; .test.tsx skipped, node_modules excluded
+    expect(r.filesWithSignal).toBe(2);
+    expect(r.tokens).toBe(1); // bg-foreground
+    expect(r.raw).toBe(1); // bg-zinc-900
+    expect(r.conformance).toBeCloseTo(0.5, 5);
+    expect(r.perFile).toHaveLength(2);
+    expect(r.rootPath).toBe(root);
+  });
+
+  it('returns null conformance on empty repo', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'atelier-classify-empty-'));
+    const r = await scoreRepo(root);
+    expect(r.filesScanned).toBe(0);
+    expect(r.tokens).toBe(0);
+    expect(r.raw).toBe(0);
+    expect(r.conformance).toBeNull();
   });
 });

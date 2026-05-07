@@ -31,11 +31,11 @@ describe('lintDesignMd 0-diff gate', () => {
       expect(wrapped.findings.length).toBe(upstreamReport.findings.length);
       // Atelier-emitted findings must be empty without an atlas input.
       expect(wrapped.atelierFindings.length).toBe(0);
-      // Findings preserved 1:1 (same severity, code, message).
+      // Findings preserved 1:1 (same severity, path, message).
       for (const [i, expected] of upstreamReport.findings.entries()) {
         const actual = wrapped.findings[i];
         expect(actual?.severity).toBe(expected.severity);
-        expect(actual?.code).toBe(expected.code);
+        expect(actual?.path).toBe(expected.path);
         expect(actual?.message).toBe(expected.message);
       }
       // Severity bucket totals match upstream summary.
