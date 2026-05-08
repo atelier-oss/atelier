@@ -23,6 +23,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Optional
 
+from benchmarks.registry import build_registry
 from benchmarks.score import score_text
 
 
@@ -113,7 +114,9 @@ def find_source_files(repo: Path) -> list[Path]:
     return files
 
 
-def score_repo(repo: Path) -> RepoResult:
+def score_repo(repo: Path, registry: Optional[set[str]] = None) -> RepoResult:
+    """Score a repo. With registry=None, applies spec-v1 classifier.
+    With registry set, applies spec-v2 strict classifier."""
     if not repo.exists():
         return RepoResult(
             repo=str(repo), name=repo.name, files_scanned=0, files_with_signal=0,
@@ -128,7 +131,7 @@ def score_repo(repo: Path) -> RepoResult:
             text = f.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        s = score_text(text)
+        s = score_text(text, registry=registry)
         if s.tokens or s.raw:
             signal_files += 1
         tokens += s.tokens

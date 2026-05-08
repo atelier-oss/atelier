@@ -7,10 +7,11 @@ token-reference ratio than control repos, because AI agents and humans both
 have a named handle to grab when generating UI.
 
 Surface:
-    classify_class(cls) -> Verdict | None
+    classify_class(cls) -> Verdict | None         # spec-v1, no registry
+    classify_class_strict(cls, registry) -> ...   # spec-v2, registry-aware
     extract_inline_colors(text) -> list[str]
     extract_tailwind_classes(text) -> list[str]
-    score_text(text) -> ScoreResult
+    score_text(text, registry=None) -> ScoreResult  # registry=None → v1; set → v2
 """
 from __future__ import annotations
 
@@ -137,12 +138,66 @@ def extract_tailwind_classes(text: str) -> list[str]:
     return classes
 
 
-def score_text(text: str) -> ScoreResult:
-    """Score a code snippet for token-vs-raw conformance."""
+def classify_class_strict(cls: str, registry: frozenset[str] | set[str]) -> Optional[Verdict]:
+    """spec-v2 registry-aware classification.
+
+    Like `classify_class` but a class is TOKEN only if its prefix segment
+    is a member of the project's declared token registry. Classes that v1
+    would have called TOKEN but whose name isn't in `registry` are demoted
+    to RAW — this is what closes the v1 leak where ad-hoc semantic naming
+    (`bg-card` without a token contract) inflated raw-palette projects.
+
+    Returns None for non-color classes (size/alignment/etc.) — same as v1.
+    """
+    v = classify_class(cls)
+    if v is not Verdict.TOKEN:
+        return v
+
+    _, _, value = cls.partition("-")
+    # Arbitrary value: bg-[var(--x)] -> the registry check is on the var name.
+    if value.startswith("[") and value.endswith("]"):
+        inner = value[1:-1]
+        if "var(" in inner:
+            # Pull `--name` out of var(--name) or var(--name, fallback)
+            m = re.search(r"var\(--([A-Za-z][A-Za-z0-9_-]*)", inner)
+            if m and m.group(1) in registry:
+                return Verdict.TOKEN
+            return Verdict.RAW
+        return v  # shouldn't reach — classify_class would have returned RAW or None
+
+    # The remainder after the color prefix is the token name. Tailwind treats
+    # `bg-card-foreground` as a single custom color named `card-foreground`,
+    # not as `card` with a `-foreground` modifier. Match the full base against
+    # the registry. Opacity modifier (`/50`) and the palette numeric step
+    # (`-800`) have already been excluded by classify_class.
+    base = value.split("/", 1)[0]
+    if base in registry:
+        return Verdict.TOKEN
+    # Fallback: also match the bare prefix segment so registries that use
+    # short keys (`pf` for the `pf-*` family) still work.
+    first = base.split("-", 1)[0]
+    if first in registry:
+        return Verdict.TOKEN
+    return Verdict.RAW
+
+
+def score_text(
+    text: str,
+    registry: Optional[frozenset[str] | set[str]] = None,
+) -> ScoreResult:
+    """Score a code snippet for token-vs-raw conformance.
+
+    When `registry` is None, behaves as spec-v1 (every non-palette prefix is
+    TOKEN). When `registry` is provided, applies spec-v2 strict classification
+    via `classify_class_strict`.
+    """
     tokens = 0
     raw = 0
     for cls in extract_tailwind_classes(text):
-        v = classify_class(cls)
+        if registry is None:
+            v = classify_class(cls)
+        else:
+            v = classify_class_strict(cls, registry)
         if v is Verdict.TOKEN:
             tokens += 1
         elif v is Verdict.RAW:
