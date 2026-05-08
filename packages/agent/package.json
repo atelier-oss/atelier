@@ -1,7 +1,7 @@
 {
   "name": "@atelier-oss/agent",
-  "version": "0.2.0",
-  "description": "Atelier Design Agent — text-brief-to-token-conformant React/Tailwind code via Sonnet + atelier_classify. Phase 2 adds screenshot vision input and atlas fingerprint project-context augmentation.",
+  "version": "0.3.0",
+  "description": "Atelier Design Agent — text-brief-to-token-conformant React/Tailwind code via Sonnet 4.6 + @atelier-oss/classify. Phase 3a adds Figma REST integration with variable role-mapping preamble.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
