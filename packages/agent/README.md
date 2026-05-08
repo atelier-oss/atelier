@@ -4,9 +4,30 @@
 
 ## Status
 
-**Phase 2 — screenshot input + atlas fingerprint context.**
+**Phase 3a — Figma REST integration.**
 
-Phase 2 ships two new capabilities on top of the Phase 1 closed-loop rewrite loop:
+Pass a Figma file URL or key. The agent fetches Variables + Styles + file metadata via the Figma REST API, infers role mappings (Figma variable name → atelier canonical role like `primary` / `background` / `foreground` / `muted`), and injects the role table into the system prompt. The model uses role tokens (`bg-primary`) instead of inlining hex (`#F47B20`) when the brief references colors the file declares.
+
+```ts
+const result = await agent.run({
+  brief: 'pricing tier card using the brand orange CTA',
+  figma: 'https://www.figma.com/file/ABC123/Acme-Brand',
+  // figmaToken falls back to FIGMA_TOKEN env var
+});
+```
+
+Notes:
+
+- Requires a Figma personal access token. Set `FIGMA_TOKEN` env var or pass `figmaToken` on `AgentOptions`.
+- The Variables API (`/v1/files/{key}/variables/local`) is **Enterprise-gated**. On non-Enterprise files the endpoint may 404; the adapter handles this gracefully (treats it as "no variables") so Styles and file metadata still load.
+- Role inference uses keyword heuristics on variable names (`color/primary` → `primary`, `color/text-muted` → `muted`, etc.). Variables that don't match any role are listed under "unmapped" — the LLM still sees them.
+- Iterate phase is unchanged: rewrite uses prior code as the reference, not the Figma context.
+
+---
+
+**Phase 2 — screenshot input + atlas fingerprint context** (shipped).
+
+Phase 2 ships two capabilities on top of the Phase 1 closed-loop rewrite loop:
 
 ### Screenshot input via Claude vision
 
@@ -47,8 +68,8 @@ Empirical findings from Phase 0 ([`eval/PHASE-0-FINDINGS.md`](./eval/PHASE-0-FIN
 
 Not in this phase (all on the roadmap):
 
-- No DESIGN.md emission from atlas results (Phase 2.x)
-- No Figma input via the Anthropic Figma Plugin (Phase 3)
+- No DESIGN.md emission to disk from atlas/Figma results (Phase 2.x / 3b)
+- No Anthropic Figma Plugin MCP path — that ships as a Claude Code skill in Phase 5
 - No generative benchmark v3 (Phase 4)
 - No Claude Code skill bundle / MCP tool / CLI subcommand (Phase 5)
 
@@ -81,11 +102,18 @@ const result3 = await agent.run({
   cwd: process.cwd(),
 });
 
-// All three combined:
+// With Figma file (Phase 3a):
 const result4 = await agent.run({
+  brief: 'pricing card using the brand orange CTA',
+  figma: 'https://www.figma.com/file/ABC123/Acme-Brand',
+});
+
+// All four combined:
+const result5 = await agent.run({
   brief: 'sidebar nav',
   screenshot: './refs/nav-ref.png',
   cwd: process.cwd(),
+  figma: 'ABC123',
 });
 
 console.log(result.scores.classify);  // { tokens, raw, conformance }
@@ -105,6 +133,7 @@ new Agent({
   maxOutputTokens: 16384,         // default — component-level output fits well under
   iterate: 3,                     // default — max rewrite passes after initial generate
   threshold: 0.95,                // default — bail out when conformance >= threshold
+  figmaToken: process.env.FIGMA_TOKEN, // default — only required when input.figma is set
 });
 
 // Phase 0 mode (no iteration):

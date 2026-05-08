@@ -37,10 +37,15 @@ export interface FigmaContext {
 // Matches https://www.figma.com/file/ABC123/... and /design/ABC123/...
 const FIGMA_URL_RE = /figma\.com\/(?:file|design)\/([A-Za-z0-9]+)/;
 const RAW_KEY_RE = /^[A-Za-z0-9]+$/;
+// Real Figma file keys are 22 characters of base62. Reject obvious garbage
+// like a single char or short alphanumeric strings that would pass the
+// regex but produce a guaranteed 404 against the API.
+const MIN_RAW_KEY_LENGTH = 10;
 
 /**
  * Extract the bare Figma file key from a URL or raw key string.
- * Accepts /file/ and /design/ URL forms, or a plain alphanumeric key.
+ * Accepts /file/ and /design/ URL forms, or a plain alphanumeric key
+ * of at least 10 characters (real keys are 22).
  * Throws on malformed input.
  */
 export function extractFileKey(input: string): string {
@@ -51,13 +56,19 @@ export function extractFileKey(input: string): string {
     return urlMatch[1];
   }
 
-  if (RAW_KEY_RE.test(trimmed) && trimmed.length > 0) {
+  if (RAW_KEY_RE.test(trimmed)) {
+    if (trimmed.length < MIN_RAW_KEY_LENGTH) {
+      throw new Error(
+        `Agent.figma: input "${input}" is too short to be a Figma file key. ` +
+          `Real keys are 22 characters; minimum accepted: ${MIN_RAW_KEY_LENGTH}.`,
+      );
+    }
     return trimmed;
   }
 
   throw new Error(
     `Agent.figma: cannot extract file key from input "${input}". ` +
-      'Expected a Figma URL (https://www.figma.com/file/KEY/...) or raw key (alphanumeric).',
+      'Expected a Figma URL (https://www.figma.com/file/KEY/...) or raw key (alphanumeric, ≥10 chars).',
   );
 }
 
@@ -182,17 +193,40 @@ async function figmaFetch<T>(
     const statusMessages: Record<number, string> = {
       401: 'invalid or missing Figma token (401 Unauthorized)',
       403: 'insufficient permissions for this file (403 Forbidden)',
-      404: 'Figma file not found (404 Not Found)',
+      404: 'endpoint not found (404 Not Found)',
       429: 'Figma API rate limit exceeded (429 Too Many Requests)',
     };
     const detail = statusMessages[status] ?? `HTTP ${status}`;
     throw new Error(
-      `Agent.figma: ${detail} for file key "${fileKey}". ` +
-        'Check FIGMA_TOKEN and file visibility.',
+      `Agent.figma: ${detail} for endpoint "${path}" (file key "${fileKey}"). ` +
+        'Check FIGMA_TOKEN, file visibility, and that the endpoint is available on your Figma plan.',
     );
   }
 
   return response.json() as Promise<T>;
+}
+
+/**
+ * Best-effort fetch for endpoints that may legitimately 404 on non-Enterprise
+ * plans (notably /variables/local). On 404 we return the supplied fallback
+ * instead of throwing — Variables API is Enterprise-gated; absence is a real
+ * world condition, not a hard error.
+ */
+async function figmaFetchOptional<T>(
+  path: string,
+  token: string,
+  fileKey: string,
+  fallback: T,
+): Promise<T> {
+  try {
+    return await figmaFetch<T>(path, token, fileKey);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('404 Not Found')) {
+      return fallback;
+    }
+    throw err;
+  }
 }
 
 /**
@@ -207,11 +241,15 @@ export async function loadFigmaContext(
 ): Promise<FigmaContext> {
   const fileKey = extractFileKey(input);
 
+  // Variables API is Enterprise-gated; treat 404 as "no variables" instead
+  // of failing the whole context load. Styles + file-info fetches still
+  // hard-fail — they're available on every Figma plan.
   const [variablesData, stylesData, fileData] = await Promise.all([
-    figmaFetch<FigmaVariablesApiResponse>(
+    figmaFetchOptional<FigmaVariablesApiResponse>(
       `/files/${fileKey}/variables/local`,
       token,
       fileKey,
+      { meta: { variables: {} } },
     ),
     figmaFetch<FigmaStylesApiResponse>(
       `/files/${fileKey}/styles`,

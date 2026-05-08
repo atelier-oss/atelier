@@ -17,15 +17,24 @@ import type { FigmaContext, FigmaVariable } from '../adapters/figma';
 
 // Each entry: [role label, [...substrings to match in the variable name]]
 // Earlier entries win (first match wins when multiple keywords apply).
+//
+// Order matters because keyword sets overlap. Specific roles come BEFORE
+// generic ones so a name like `color/text-muted` resolves to `muted` (not
+// `foreground`) — the muted-ness is the more meaningful classification.
+//
+// `text` is intentionally NOT a foreground keyword: it's too broad and
+// would false-fire on every `text-{anything}` name. `color/text` (the bare
+// case) falls through to `unmapped` — the LLM still sees it in the
+// preamble's unmapped section and can use the hex with judgement.
 const ROLE_HEURISTICS: Array<[string, string[]]> = [
-  ['primary',    ['primary', 'brand', 'cta']],
-  ['background', ['background', 'bg', 'canvas', 'surface-page']],
-  ['foreground', ['foreground', 'text', 'ink']],
   ['muted',      ['muted', 'secondary-text', 'subdued']],
   ['accent',     ['accent', 'secondary-action', 'highlight']],
   ['border',     ['border', 'divider', 'hairline']],
   ['ring',       ['ring', 'focus']],
-  ['card',       ['card', 'surface', 'elevated']],
+  ['card',       ['card', 'elevated']],
+  ['primary',    ['primary', 'brand', 'cta']],
+  ['background', ['background', 'bg', 'canvas', 'surface-page', 'surface']],
+  ['foreground', ['foreground', 'ink']],
 ];
 
 export type VariableRole =

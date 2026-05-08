@@ -555,7 +555,7 @@ describe('Agent.run() -- Phase 2 atlas fingerprint context', () => {
 describe('extractFileKey', () => {
   it('handles a raw alphanumeric key', async () => {
     const { extractFileKey } = await import('./adapters/figma');
-    expect(extractFileKey('ABC123xyz')).toBe('ABC123xyz');
+    expect(extractFileKey('ABC123xyzREALISTIC22')).toBe('ABC123xyzREALISTIC22');
   });
 
   it('handles a /file/ URL', async () => {
@@ -582,11 +582,11 @@ describe('extractFileKey', () => {
 
 describe('loadFigmaContext', () => {
   it('fetches both endpoints with X-Figma-Token header', async () => {
-    const mockFetch = makeFigmaFetchMock('TESTKEY');
+    const mockFetch = makeFigmaFetchMock('TESTKEYABCDEFGHIJKLMNO');
     vi.stubGlobal('fetch', mockFetch);
 
     const { loadFigmaContext } = await import('./adapters/figma');
-    await loadFigmaContext('TESTKEY', 'my-token');
+    await loadFigmaContext('TESTKEYABCDEFGHIJKLMNO', 'my-token');
 
     // Should have made 3 calls: variables, styles, and file metadata.
     expect(mockFetch).toHaveBeenCalledTimes(3);
@@ -601,15 +601,15 @@ describe('loadFigmaContext', () => {
     const urls = mockFetch.mock.calls.map((c: unknown[]) => String(c[0]));
     expect(urls.some((u: string) => u.includes('/variables/local'))).toBe(true);
     expect(urls.some((u: string) => u.includes('/styles'))).toBe(true);
-    expect(urls.some((u: string) => u.includes('/files/TESTKEY'))).toBe(true);
+    expect(urls.some((u: string) => u.includes('/files/TESTKEYABCDEFGHIJKLMNO'))).toBe(true);
   });
 
   it('normalizes RGBA floats to hex correctly', async () => {
-    const mockFetch = makeFigmaFetchMock('COLORKEY');
+    const mockFetch = makeFigmaFetchMock('COLORKEYABCDEFGHIJKLMN');
     vi.stubGlobal('fetch', mockFetch);
 
     const { loadFigmaContext } = await import('./adapters/figma');
-    const ctx = await loadFigmaContext('COLORKEY', 'tok');
+    const ctx = await loadFigmaContext('COLORKEYABCDEFGHIJKLMN', 'tok');
 
     // color/primary is { r: 0.957, g: 0.482, b: 0.125, a: 1 }
     // -> r=244, g=123, b=32 -> #f47b20
@@ -658,7 +658,7 @@ describe('rgbaToHex', () => {
 
 describe('Agent.run() -- Phase 3a Figma integration', () => {
   it('includes the figma-context preamble in the system prompt when figma is provided', async () => {
-    vi.stubGlobal('fetch', makeFigmaFetchMock('FILEKEY1'));
+    vi.stubGlobal('fetch', makeFigmaFetchMock('FILEKEY1ABCDEFGHIJKLMN'));
 
     mockMessageCreate.mockResolvedValueOnce({
       content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
@@ -670,7 +670,7 @@ describe('Agent.run() -- Phase 3a Figma integration', () => {
     const agent = new Agent({ apiKey: 'test-key', iterate: 0, figmaToken: 'fig-token' });
     await agent.run({
       brief: 'hero section using brand colors',
-      figma: 'FILEKEY1',
+      figma: 'FILEKEY1ABCDEFGHIJKLMN',
     });
 
     const callArgs = mockMessageCreate.mock.calls[0]?.[0] ?? {};
@@ -704,7 +704,7 @@ describe('Agent.run() -- Phase 3a Figma integration', () => {
   });
 
   it('renders atlas-context preamble BEFORE figma-context preamble when both are present', async () => {
-    vi.stubGlobal('fetch', makeFigmaFetchMock('DUALKEY'));
+    vi.stubGlobal('fetch', makeFigmaFetchMock('DUALKEYABCDEFGHIJKLMNO'));
 
     mockMessageCreate.mockResolvedValueOnce({
       content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
@@ -717,7 +717,7 @@ describe('Agent.run() -- Phase 3a Figma integration', () => {
     await agent.run({
       brief: 'sidebar with brand colors',
       cwd: '/fake/project',
-      figma: 'DUALKEY',
+      figma: 'DUALKEYABCDEFGHIJKLMNO',
     });
 
     const callArgs = mockMessageCreate.mock.calls[0]?.[0] ?? {};
@@ -737,7 +737,7 @@ describe('Agent.run() -- Phase 3a Figma integration', () => {
   });
 
   it('records figmaFileKey and variableCount in trace notes', async () => {
-    vi.stubGlobal('fetch', makeFigmaFetchMock('TRACEKEY'));
+    vi.stubGlobal('fetch', makeFigmaFetchMock('TRACEKEYABCDEFGHIJKLMN'));
 
     mockMessageCreate.mockResolvedValueOnce({
       content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
@@ -749,15 +749,15 @@ describe('Agent.run() -- Phase 3a Figma integration', () => {
     const agent = new Agent({ apiKey: 'test-key', iterate: 0, figmaToken: 'fig-token' });
     const result = await agent.run({
       brief: 'nav bar',
-      figma: 'TRACEKEY',
+      figma: 'TRACEKEYABCDEFGHIJKLMN',
     });
 
     const intakeEntry = result.trace.find((t) => t.phase === 'intake');
-    expect(intakeEntry?.notes?.figmaFileKey).toBe('TRACEKEY');
+    expect(intakeEntry?.notes?.figmaFileKey).toBe('TRACEKEYABCDEFGHIJKLMN');
     expect(typeof intakeEntry?.notes?.figmaVariableCount).toBe('number');
 
     const generateEntry = result.trace.find((t) => t.phase === 'generate');
-    expect(generateEntry?.notes?.figmaFileKey).toBe('TRACEKEY');
+    expect(generateEntry?.notes?.figmaFileKey).toBe('TRACEKEYABCDEFGHIJKLMN');
     expect(typeof generateEntry?.notes?.figmaMappedRoleCount).toBe('number');
   });
 });
