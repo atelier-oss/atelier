@@ -32,5 +32,14 @@
     "typescript": "^5.6.3",
     "vitest": "^2.1.5",
     "yaml": "^2.7.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atelier-oss/atelier.git",
+    "directory": "packages/classify"
+  },
+  "homepage": "https://github.com/atelier-oss/atelier#readme",
+  "bugs": {
+    "url": "https://github.com/atelier-oss/atelier/issues"
   }
 }

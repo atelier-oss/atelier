@@ -42,5 +42,14 @@
     "tsup": "^8.3.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atelier-oss/atelier.git",
+    "directory": "packages/mcp-server"
+  },
+  "homepage": "https://github.com/atelier-oss/atelier#readme",
+  "bugs": {
+    "url": "https://github.com/atelier-oss/atelier/issues"
   }
 }

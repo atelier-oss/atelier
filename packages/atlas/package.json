@@ -1,7 +1,7 @@
 {
   "name": "@atelier-oss/atlas",
   "version": "0.1.0",
-  "description": "Build-category atlas — fingerprint a project, get default DESIGN.md DNA + exemplars.",
+  "description": "Build-category atlas \u2014 fingerprint a project, get default DESIGN.md DNA + exemplars.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -34,5 +34,14 @@
     "tsup": "^8.3.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atelier-oss/atelier.git",
+    "directory": "packages/atlas"
+  },
+  "homepage": "https://github.com/atelier-oss/atelier#readme",
+  "bugs": {
+    "url": "https://github.com/atelier-oss/atelier/issues"
   }
 }

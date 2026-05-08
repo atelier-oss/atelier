@@ -1,7 +1,7 @@
 {
   "name": "@atelier-oss/audit",
   "version": "0.1.0",
-  "description": "Project audit — token usage, contrast, motion, accessibility, design coverage, responsive layout.",
+  "description": "Project audit \u2014 token usage, contrast, motion, accessibility, design coverage, responsive layout.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -31,5 +31,14 @@
     "tsup": "^8.3.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atelier-oss/atelier.git",
+    "directory": "packages/audit"
+  },
+  "homepage": "https://github.com/atelier-oss/atelier#readme",
+  "bugs": {
+    "url": "https://github.com/atelier-oss/atelier/issues"
   }
 }

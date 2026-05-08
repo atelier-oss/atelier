@@ -1,7 +1,7 @@
 {
   "name": "@atelier-oss/cli",
   "version": "0.1.0",
-  "description": "Atelier CLI — DESIGN.md-aware design-token toolkit. v0 generates. Cursor edits. Atelier enforces.",
+  "description": "Atelier CLI \u2014 DESIGN.md-aware design-token toolkit. v0 generates. Cursor edits. Atelier enforces.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -42,5 +42,14 @@
     "tsup": "^8.3.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atelier-oss/atelier.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/atelier-oss/atelier#readme",
+  "bugs": {
+    "url": "https://github.com/atelier-oss/atelier/issues"
   }
 }
