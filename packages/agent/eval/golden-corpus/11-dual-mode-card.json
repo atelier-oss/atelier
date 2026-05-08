@@ -1,0 +1,8 @@
+{
+  "id": "11-dual-mode-card",
+  "brief": "dashboard card component that renders correctly in both light and dark modes. The card has a title, a primary metric in large display type, a secondary supporting stat, and a small action menu in the corner. Use Tailwind dark: variants for the dark-mode treatment.",
+  "category": "saas-dashboard",
+  "minConformance": 0.5,
+  "difficulty": "hard",
+  "trap": "dual-mode-doubles-color-decisions-and-dark-variant-tempts-zinc-refs"
+}

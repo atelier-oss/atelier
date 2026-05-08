@@ -1,0 +1,8 @@
+{
+  "id": "09-full-landing-page",
+  "brief": "full marketing landing page composition: hero with single CTA, three feature cards in a row, three-column testimonial grid, two-tier pricing block, and a footer with three columns of links plus a newsletter signup. One file, one default-exported component, all sections inside a single section flow.",
+  "category": "marketing-landing",
+  "minConformance": 0.5,
+  "difficulty": "hard",
+  "trap": "more-surface-more-chances-for-raw-refs-to-slip-in"
+}

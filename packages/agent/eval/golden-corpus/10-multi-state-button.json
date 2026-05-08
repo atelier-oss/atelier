@@ -1,0 +1,8 @@
+{
+  "id": "10-multi-state-button",
+  "brief": "primary button component with all state variants visible at once on a dark canvas: default, hover, active (pressed), focus (with focus ring), disabled, and loading (with a spinner). Each state visually distinct. Show all six states stacked vertically with a small caption under each.",
+  "category": "saas-dashboard",
+  "minConformance": 0.5,
+  "difficulty": "hard",
+  "trap": "state-variants-multiply-color-decisions-tempt-shade-refs"
+}
