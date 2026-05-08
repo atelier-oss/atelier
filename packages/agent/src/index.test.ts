@@ -40,6 +40,13 @@ vi.mock('node:fs/promises', () => ({
   readFile: vi.fn().mockResolvedValue(TINY_PNG_BUFFER),
   // stat() is used by loadScreenshot() for the 20MB size guard.
   stat: vi.fn().mockResolvedValue({ size: TINY_PNG_BUFFER.length }),
+  // Phase 2.x: scaffold phase writes DESIGN.md.
+  writeFile: vi.fn().mockResolvedValue(undefined),
+  // access() rejecting with ENOENT simulates "DESIGN.md does not exist yet".
+  access: vi
+    .fn()
+    .mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' })),
+  constants: { F_OK: 0 },
 }));
 
 const MOCK_ATLAS_RESULT = {
@@ -166,8 +173,16 @@ function makeFigmaFetchMock(fileKey: string) {
 
 // -------------------------------------------------------------------------
 
-beforeEach(() => {
+beforeEach(async () => {
   mockMessageCreate.mockReset();
+  // Reset Phase 2.x scaffold mocks to their default state every test:
+  //   writeFile: succeeds silently
+  //   access:    rejects with ENOENT (DESIGN.md does not exist)
+  const fs = await import('node:fs/promises');
+  vi.mocked(fs.writeFile).mockReset().mockResolvedValue(undefined);
+  vi.mocked(fs.access)
+    .mockReset()
+    .mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
 });
 
 afterEach(() => {
@@ -759,5 +774,174 @@ describe('Agent.run() -- Phase 3a Figma integration', () => {
     const generateEntry = result.trace.find((t) => t.phase === 'generate');
     expect(generateEntry?.notes?.figmaFileKey).toBe('TRACEKEYABCDEFGHIJKLMN');
     expect(typeof generateEntry?.notes?.figmaMappedRoleCount).toBe('number');
+  });
+});
+
+// =========================================================================
+// Phase 2.x -- DESIGN.md scaffolder
+// =========================================================================
+
+describe('Agent.run() -- Phase 2.x DESIGN.md scaffolder', () => {
+  it('scaffolds DESIGN.md from atlas alone when scaffoldDesignMd is true and the file is absent', async () => {
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 100, output_tokens: 200 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const fs = await import('node:fs/promises');
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
+    const result = await agent.run({
+      brief: 'sidebar nav',
+      cwd: '/fake/project',
+      scaffoldDesignMd: true,
+    });
+
+    expect(vi.mocked(fs.writeFile)).toHaveBeenCalledTimes(1);
+    const [target, body] = vi.mocked(fs.writeFile).mock.calls[0]!;
+    expect(target).toBe('/fake/project/DESIGN.md');
+    expect(typeof body).toBe('string');
+
+    // Saas-dashboard baseline: primary stays #4F46E5.
+    expect(body as string).toContain('version: alpha');
+    expect(body as string).toContain('#4F46E5');
+    expect(body as string).toMatch(/^---\n/);
+    expect((body as string).trim().endsWith('---')).toBe(true);
+
+    expect(result.scaffoldedFiles).toBeDefined();
+    expect(result.scaffoldedFiles).toHaveLength(1);
+    expect(result.scaffoldedFiles?.[0]?.path).toBe('/fake/project/DESIGN.md');
+
+    const scaffoldEntry = result.trace.find((t) => t.phase === 'scaffold');
+    expect(scaffoldEntry).toBeDefined();
+    expect(scaffoldEntry?.notes?.scaffoldedCount).toBe(1);
+    expect(scaffoldEntry?.notes?.skipReason).toBeUndefined();
+  });
+
+  it('scaffolds DESIGN.md from figma alone when atlas yields no category', async () => {
+    // Atlas resolves to no category — falls through to figma-only path.
+    const { fingerprint } = await import('@atelier-oss/atlas');
+    vi.mocked(fingerprint).mockReturnValueOnce({
+      rootPath: '/fake/project',
+      category: null,
+      ranking: [],
+      exemplars: [],
+      shardPath: null,
+    });
+
+    vi.stubGlobal('fetch', makeFigmaFetchMock('FIGMAONLY1ABCDEFGHIJKL'));
+
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 150, output_tokens: 250 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const fs = await import('node:fs/promises');
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0, figmaToken: 'fig-token' });
+    const result = await agent.run({
+      brief: 'hero',
+      cwd: '/fake/project',
+      figma: 'FIGMAONLY1ABCDEFGHIJKL',
+      scaffoldDesignMd: true,
+    });
+
+    expect(vi.mocked(fs.writeFile)).toHaveBeenCalledTimes(1);
+    const [, body] = vi.mocked(fs.writeFile).mock.calls[0]!;
+    const text = body as string;
+
+    // figma color/primary -> #f47b20 (computed from MOCK_FIGMA_VARIABLES_RESPONSE).
+    expect(text.toLowerCase()).toContain('#f47b20');
+    // Name derives from figma file metadata.
+    expect(text).toContain('Acme Brand System');
+    // Description falls back to "Design tokens" when category is null.
+    expect(text).toContain('Design tokens for Acme Brand System');
+
+    expect(result.scaffoldedFiles).toHaveLength(1);
+  });
+
+  it('lets figma override atlas brand axis when both are present', async () => {
+    vi.stubGlobal('fetch', makeFigmaFetchMock('BOTHKEY1ABCDEFGHIJKLMN'));
+
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 200, output_tokens: 300 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const fs = await import('node:fs/promises');
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0, figmaToken: 'fig-token' });
+    await agent.run({
+      brief: 'pricing page',
+      cwd: '/fake/project',
+      figma: 'BOTHKEY1ABCDEFGHIJKLMN',
+      scaffoldDesignMd: true,
+    });
+
+    expect(vi.mocked(fs.writeFile)).toHaveBeenCalledTimes(1);
+    const [, body] = vi.mocked(fs.writeFile).mock.calls[0]!;
+    const text = body as string;
+
+    // Figma primary (#f47b20) must override saas-dashboard baseline (#4F46E5).
+    expect(text.toLowerCase()).toContain('#f47b20');
+    // Anchor to the start of the line so we exercise the bare `primary:`
+    // entry (not `sidebar-primary:` which inherits from baseline).
+    expect(text).toMatch(/^\s\sprimary:\s*"#[fF]47[bB]20"/m);
+    expect(text).not.toMatch(/^\s\sprimary:\s*"#4F46E5"/m);
+  });
+
+  it('skips scaffold when DESIGN.md already exists', async () => {
+    // Override default access mock: file exists.
+    const fs = await import('node:fs/promises');
+    vi.mocked(fs.access).mockResolvedValueOnce(undefined);
+
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 100, output_tokens: 200 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
+    const result = await agent.run({
+      brief: 'data table',
+      cwd: '/fake/project',
+      scaffoldDesignMd: true,
+    });
+
+    // writeFile must not be called when the file already exists.
+    expect(vi.mocked(fs.writeFile)).not.toHaveBeenCalled();
+    expect(result.scaffoldedFiles).toBeUndefined();
+
+    const scaffoldEntry = result.trace.find((t) => t.phase === 'scaffold');
+    expect(scaffoldEntry).toBeDefined();
+    expect(scaffoldEntry?.notes?.scaffoldedCount).toBe(0);
+    expect(scaffoldEntry?.notes?.skipReason).toBe('already-exists');
+  });
+
+  it('does not scaffold when scaffoldDesignMd is omitted (default opt-out)', async () => {
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 100, output_tokens: 200 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const fs = await import('node:fs/promises');
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
+    const result = await agent.run({
+      brief: 'data table',
+      cwd: '/fake/project',
+      // scaffoldDesignMd omitted -> default false.
+    });
+
+    // No scaffold -> writeFile never called, no scaffold trace entry,
+    // no scaffoldedFiles on the result.
+    expect(vi.mocked(fs.writeFile)).not.toHaveBeenCalled();
+    expect(result.scaffoldedFiles).toBeUndefined();
+    expect(result.trace.find((t) => t.phase === 'scaffold')).toBeUndefined();
   });
 });

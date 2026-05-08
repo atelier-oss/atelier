@@ -20,6 +20,7 @@ import { deliver } from './pipeline/deliver';
 import { generate } from './pipeline/generate';
 import { intake } from './pipeline/intake';
 import { iterate } from './pipeline/iterate';
+import { scaffoldDesignMd } from './pipeline/scaffold';
 import { verify } from './pipeline/verify';
 import { buildFigmaContextPreamble, inferRole } from './prompts/figma-context';
 import type {
@@ -28,6 +29,7 @@ import type {
   RunInput,
   RunResult,
   RunTraceEntry,
+  ScaffoldedFile,
 } from './types';
 
 export type {
@@ -39,11 +41,14 @@ export type {
   RunInput,
   RunResult,
   RunTraceEntry,
+  ScaffoldedFile,
 } from './types';
+
+export { composeDesignMd } from './adapters/design-md-emitter';
 
 export { DEFAULT_CODEGEN_MODEL, DEFAULT_MAX_OUTPUT_TOKENS } from './models/defaults';
 
-export const VERSION = '0.3.0' as const;
+export const VERSION = '0.4.0' as const;
 
 export const DEFAULT_ITERATE_MAX = 3 as const;
 export const DEFAULT_THRESHOLD = 0.95 as const;
@@ -92,6 +97,30 @@ export class Agent {
         ...(figmaFileKey ? { figmaFileKey, figmaVariableCount } : {}),
       },
     });
+
+    // --- Scaffold (Phase 2.x; opt-in via input.scaffoldDesignMd) ---
+    let scaffoldedFiles: ScaffoldedFile[] | undefined;
+    if (input.scaffoldDesignMd === true && input.cwd) {
+      const scaffoldStart = Date.now();
+      const scaffoldAt = new Date(scaffoldStart).toISOString();
+      const scaffoldOutput = await scaffoldDesignMd({
+        cwd: input.cwd,
+        atlasContext: normalized.atlasContext,
+        figmaContext: normalized.figmaContext,
+      });
+      trace.push({
+        phase: 'scaffold',
+        startedAt: scaffoldAt,
+        durationMs: Date.now() - scaffoldStart,
+        notes: {
+          scaffoldedCount: scaffoldOutput.scaffoldedFiles.length,
+          ...(scaffoldOutput.skipReason ? { skipReason: scaffoldOutput.skipReason } : {}),
+        },
+      });
+      if (scaffoldOutput.scaffoldedFiles.length > 0) {
+        scaffoldedFiles = scaffoldOutput.scaffoldedFiles;
+      }
+    }
 
     // --- Generate ---
     const genStart = Date.now();
@@ -193,6 +222,11 @@ export class Agent {
       durationMs: Date.now() - deliverStart,
     });
 
-    return { ...partial, trace, iterations: iterated.iterations };
+    return {
+      ...partial,
+      trace,
+      iterations: iterated.iterations,
+      ...(scaffoldedFiles ? { scaffoldedFiles } : {}),
+    };
   }
 }
