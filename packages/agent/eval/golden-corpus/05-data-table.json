@@ -1,6 +1,5 @@
 {
   "id": "05-data-table",
   "brief": "data table with 10 rows showing customer records (name, email, plan, MRR, status). Status column uses semantic state colors via tokens. Sticky table header. Tabular numerics on the MRR column. Alternating row backgrounds via muted token. One inline action per row (a small 'Edit' link).",
-  "category": "saas-dashboard",
-  "minConformance": 0.5
+  "category": "saas-dashboard"
 }

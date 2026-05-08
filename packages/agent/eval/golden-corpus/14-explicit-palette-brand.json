@@ -2,7 +2,6 @@
   "id": "14-explicit-palette-brand",
   "brief": "use amber-500 as the primary color and indigo-700 as the accent color. Build a single pricing tier card with title, price, four feature bullets, and a primary CTA. Make the CTA the amber primary; the accent indigo is used on the 'Most Popular' ribbon at the top of the card.",
   "category": "saas-dashboard",
-  "minConformance": 0.5,
   "difficulty": "hard",
   "trap": "explicit-palette-names-in-brief-most-direct-trap-into-raw-refs"
 }

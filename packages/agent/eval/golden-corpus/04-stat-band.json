@@ -1,6 +1,5 @@
 {
   "id": "04-stat-band",
-  "brief": "marketing stat band — three numbers in a horizontal row, large display tabular figures with the digits emphasized. Below each number a one-line caption explaining what the number represents. Single section, generous vertical padding, centered alignment.",
-  "category": "marketing-landing",
-  "minConformance": 0.5
+  "brief": "marketing stat band \u2014 three numbers in a horizontal row, large display tabular figures with the digits emphasized. Below each number a one-line caption explaining what the number represents. Single section, generous vertical padding, centered alignment.",
+  "category": "marketing-landing"
 }

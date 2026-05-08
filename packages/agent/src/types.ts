@@ -36,7 +36,11 @@ export interface IterationRecord {
   raw: number;
   /** Tokens counted. */
   tokens: number;
-  /** Wall-clock for this iteration's API + classify pass. */
+  /**
+   * Wall-clock for the rewrite API call + classify pass. Always 0 for n=0
+   * (the initial generate's duration is recorded separately on the
+   * trace entry with phase='generate').
+   */
   durationMs: number;
 }
 

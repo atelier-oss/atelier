@@ -2,7 +2,6 @@
   "id": "06-warm-coral-pricing",
   "brief": "pricing card with a warm coral primary CTA on a soft cream canvas, dusty teal secondary actions. Show three tiers with the middle tier highlighted in coral. Each tier has a price, a 4-line feature list, and one CTA per tier.",
   "category": "marketing-landing",
-  "minConformance": 0.5,
   "difficulty": "hard",
   "trap": "named-brand-colors-tempt-hex-inlines"
 }

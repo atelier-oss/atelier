@@ -2,7 +2,6 @@
   "id": "15-photo-overlay-hero",
   "brief": "marketing hero with a full-bleed background photo and a dark linear gradient overlay from transparent at the top to mostly-opaque black at the bottom for text legibility. Center-aligned headline and sub-copy over the photo, a single primary CTA below. Use a placeholder image source.",
   "category": "marketing-landing",
-  "minConformance": 0.5,
   "difficulty": "hard",
   "trap": "gradient-overlay-tempts-arbitrary-rgba-and-bg-gradient-with-stop-shades"
 }

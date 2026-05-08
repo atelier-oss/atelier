@@ -2,7 +2,6 @@
   "id": "12-explicit-hex-brand",
   "brief": "use #F47B20 as the primary brand color and #1A7BA5 as the accent color. Build a hero CTA section with a headline, sub-copy, and one primary CTA in the brand orange. The accent teal is used on a small badge above the headline.",
   "category": "marketing-landing",
-  "minConformance": 0.5,
   "difficulty": "hard",
   "trap": "explicit-hex-in-brief-tempts-direct-inline-style-or-arbitrary-bracket-class"
 }

@@ -47,7 +47,7 @@ Below is the full prior emission:
 ${input.priorCode}
 \`\`\`
 
-A class is a CONFORMANCE FAILURE when it matches \`bg-{palette}-{shade}\`, \`text-{palette}-{shade}\`, \`from-{palette}-{shade}\`, \`to-{palette}-{shade}\`, \`via-{palette}-{shade}\`, \`border-{palette}-{shade}\`, \`ring-{palette}-{shade}\`, \`fill-{palette}-{shade}\`, or \`stroke-{palette}-{shade}\` for any palette in {${PALETTE_LIST}}.
+A class is a CONFORMANCE FAILURE when it matches any of these prefix-patterns for any palette in {${PALETTE_LIST}}: \`bg-{palette}-{shade}\`, \`text-{palette}-{shade}\`, \`border-{palette}-{shade}\`, \`ring-{palette}-{shade}\`, \`fill-{palette}-{shade}\`, \`stroke-{palette}-{shade}\`, \`outline-{palette}-{shade}\`, \`divide-{palette}-{shade}\`, \`placeholder-{palette}-{shade}\`, \`caret-{palette}-{shade}\`, \`accent-{palette}-{shade}\`, \`from-{palette}-{shade}\`, \`to-{palette}-{shade}\`, \`via-{palette}-{shade}\`, \`shadow-{palette}-{shade}\`, \`decoration-{palette}-{shade}\`. The classifier scores all 16 of these prefixes — every match is a raw ref.
 
 Rewrite the component using ONLY semantic Tailwind tokens. No palette shade references. Map the brief's color language to canonical roles, not to palette shades:
 

@@ -166,6 +166,11 @@ export async function iterate(input: IterateInput): Promise<IterateOutput> {
       break;
     }
 
+    // Feed the candidate (most-recent) into the next rewrite, NOT bestCode.
+    // Rationale: the model needs to see what it just produced so the next
+    // rewrite is a refinement, not a re-derivation from the global optimum.
+    // The "best emission seen" semantics live in `bestCode`/`bestScore` and
+    // shape the return value — they don't shape the next prompt.
     priorCode = extracted.content;
     priorScore = candidateScore;
   }

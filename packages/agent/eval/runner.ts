@@ -21,7 +21,6 @@ interface Fixture {
   id: string;
   brief: string;
   category: string;
-  minConformance: number;
 }
 
 interface FixtureRun {
