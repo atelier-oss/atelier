@@ -53,7 +53,9 @@ Read [`spec/DESIGN.md.spec.md`](./spec/DESIGN.md.spec.md) for:
 
 ## Status
 
-**Phase 2 complete.** Public launch (npm publish, GitHub org provisioning, upstream PR open) deferred to Phase 3, gated on the 30-repo benchmark expansion clearing the +40% lift threshold.
+**Phase 2 complete.** Phase 3 expansion to 24 repos (three-arm: DESIGN.md / shadcn-default / raw-palette) ran 2026-05-07; pre-registered primary gate (DESIGN.md ≥ shadcn-default + 15pp absolute) FAILED by 0.05pp (+14.95pp computed). Public npm publish + upstream PR remain blocked on a clearer signal — either a methodology revision or a Phase 2 generative arm-vs-arm study.
+
+Tailwind v4 (`@theme` blocks, `oklch()` palette) is a v0.2.0 milestone. v0.1.0 covers v3 only.
 
 The kept-alive MVB lives at [`benchmarks/`](./benchmarks/). Re-run anytime:
 

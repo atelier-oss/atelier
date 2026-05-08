@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: build + test + parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install JS deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Python deps
+        run: pip install pytest
+
+      - name: Build all packages
+        run: pnpm -r build
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: TS tests
+        run: pnpm -r test
+
+      - name: Python TS parity oracle
+        run: python3 -m benchmarks.parity_check
+
+      - name: Benchmark validator tests
+        run: python3 -m pytest benchmarks/test_runner.py -v
