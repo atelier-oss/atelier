@@ -1,10 +1,11 @@
 /**
  * @atelier-oss/agent — text-brief-to-token-conformant React/Tailwind code
- * via Sonnet 4.6 + @atelier-oss/classify. Phase 0 skeleton.
+ * via Sonnet 4.6 + @atelier-oss/classify. Phase 2: screenshot input + atlas
+ * fingerprint context.
  *
  * Public API:
  *   const agent = new Agent({ apiKey?, models?, maxOutputTokens? });
- *   const result = await agent.run({ brief });
+ *   const result = await agent.run({ brief, screenshot?, cwd? });
  *
  * The full plan lives at:
  *   ~/Projects/memory-vault/planning/2026-05-08-atelier-design-agent.md
@@ -41,7 +42,7 @@ export type {
 
 export { DEFAULT_CODEGEN_MODEL, DEFAULT_MAX_OUTPUT_TOKENS } from './models/defaults';
 
-export const VERSION = '0.1.0' as const;
+export const VERSION = '0.2.0' as const;
 
 export const DEFAULT_ITERATE_MAX = 3 as const;
 export const DEFAULT_THRESHOLD = 0.95 as const;
@@ -70,16 +71,23 @@ export class Agent {
   async run(input: RunInput): Promise<RunResult> {
     const trace: RunTraceEntry[] = [];
 
+    // --- Intake ---
     const intakeStart = Date.now();
     const intakeAt = new Date(intakeStart).toISOString();
-    const normalized = intake(input);
+    const normalized = await intake(input);
+    const atlasCategory = normalized.atlasContext?.atlas.category ?? null;
     trace.push({
       phase: 'intake',
       startedAt: intakeAt,
       durationMs: Date.now() - intakeStart,
-      notes: { briefLength: normalized.brief.length },
+      notes: {
+        briefLength: normalized.brief.length,
+        ...(input.screenshot ? { screenshot: input.screenshot } : {}),
+        ...(atlasCategory ? { atlasCategory } : {}),
+      },
     });
 
+    // --- Generate ---
     const genStart = Date.now();
     const genAt = new Date(genStart).toISOString();
     const generated = await generate({
@@ -87,6 +95,8 @@ export class Agent {
       client: this.client,
       model: this.codegenModel,
       maxOutputTokens: this.maxOutputTokens,
+      screenshot: normalized.screenshot,
+      projectContextPreamble: normalized.atlasContext?.preamble ?? undefined,
     });
     trace.push({
       phase: 'generate',
@@ -96,9 +106,12 @@ export class Agent {
         model: generated.model,
         input_tokens: generated.usage.input_tokens,
         output_tokens: generated.usage.output_tokens,
+        ...(normalized.screenshot ? { screenshotUsed: true } : {}),
+        ...(atlasCategory ? { atlasCategory } : {}),
       },
     });
 
+    // --- Verify ---
     const verifyStart = Date.now();
     const verifyAt = new Date(verifyStart).toISOString();
     const verified = verify(generated.code);
@@ -113,6 +126,7 @@ export class Agent {
       },
     });
 
+    // --- Iterate ---
     const iterateStart = Date.now();
     const iterateAt = new Date(iterateStart).toISOString();
     const iterated = await iterate({
@@ -138,6 +152,7 @@ export class Agent {
       },
     });
 
+    // --- Deliver ---
     const deliverStart = Date.now();
     const deliverAt = new Date(deliverStart).toISOString();
     const totalInput = generated.usage.input_tokens + iterated.rewriteUsage.input_tokens;

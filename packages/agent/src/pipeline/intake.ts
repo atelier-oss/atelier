@@ -1,20 +1,38 @@
 /**
  * Intake phase — validate and normalize the run input.
  *
- * Phase 0 only validates that brief is non-empty. Phase 1+ adds mode
- * inference, screenshot/figma input parsing, and atlas fingerprint kickoff.
+ * Phase 0: validates that brief is non-empty.
+ * Phase 2: when cwd is set, calls atlas fingerprint and attaches the result
+ *          (category + preamble) to the normalized input for use in generate.
  */
 
+import { resolveAtlasContext } from '../adapters/atlas-context';
+import type { AtlasContextResult } from '../adapters/atlas-context';
 import type { RunInput } from '../types';
 
 export interface NormalizedInput {
   brief: string;
+  /** Absolute path to a screenshot file, when provided. */
+  screenshot?: string;
+  /** The resolved atlas context (category + formatted preamble), when cwd was set. */
+  atlasContext?: AtlasContextResult;
 }
 
-export function intake(input: RunInput): NormalizedInput {
+export async function intake(input: RunInput): Promise<NormalizedInput> {
   const brief = input.brief?.trim() ?? '';
   if (brief.length === 0) {
     throw new Error('Agent.run: brief must be a non-empty string');
   }
-  return { brief };
+
+  const normalized: NormalizedInput = { brief };
+
+  if (input.screenshot) {
+    normalized.screenshot = input.screenshot;
+  }
+
+  if (input.cwd) {
+    normalized.atlasContext = await resolveAtlasContext(input.cwd);
+  }
+
+  return normalized;
 }

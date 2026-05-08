@@ -5,6 +5,13 @@ import type { ScoreResult } from '@atelier-oss/classify';
 /** Input to Agent.run(). Brief is the only required field in Phase 0. */
 export interface RunInput {
   brief: string;
+  /** Optional path to a reference screenshot. Loaded as base64 image content
+   * block on the initial generate call. Supports PNG/JPEG/GIF/WEBP. */
+  screenshot?: string;
+  /** Optional path to a project root. When set, the agent fingerprints
+   * the project via @atelier-oss/atlas and includes the matched category
+   * + exemplars in the system prompt as project context. */
+  cwd?: string;
 }
 
 /** A single emitted file from the codegen phase. */

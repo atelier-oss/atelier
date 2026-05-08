@@ -1,8 +1,13 @@
 /**
- * Phase 0 unit tests for @atelier-oss/agent.
+ * Phase 0 + Phase 1 + Phase 2 unit tests for @atelier-oss/agent.
  *
  * Anthropic SDK is mocked — these tests run offline. The eval/runner.ts
  * harness exercises the live API (separate gate, kicked off manually).
+ *
+ * Phase 2 mocks:
+ *   - @atelier-oss/atlas fingerprint() returns a deterministic AtlasResult.
+ *   - node:fs/promises readFile() returns a tiny PNG buffer so screenshot
+ *     loading never touches disk.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,6 +22,32 @@ vi.mock('@anthropic-ai/sdk', () => {
   }));
   return { default: MockAnthropic };
 });
+
+// --- Phase 2 mocks ---
+
+// Minimal 1x1 transparent PNG (67 bytes), base64-safe to encode.
+const TINY_PNG_BUFFER = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+);
+
+vi.mock('node:fs/promises', () => ({
+  readFile: vi.fn().mockResolvedValue(TINY_PNG_BUFFER),
+}));
+
+const MOCK_ATLAS_RESULT = {
+  rootPath: '/fake/project',
+  category: 'saas-dashboard' as const,
+  ranking: [{ category: 'saas-dashboard' as const, score: 3, signals: [] }],
+  exemplars: ['consult-ops', 'excerpa'],
+  shardPath: null,
+};
+
+vi.mock('@atelier-oss/atlas', () => ({
+  fingerprint: vi.fn().mockReturnValue(MOCK_ATLAS_RESULT),
+}));
+
+// -------------------------------------------------------------------------
 
 const TOKEN_HEAVY_TSX = `\`\`\`tsx
 import * as React from 'react';
@@ -310,5 +341,127 @@ describe('Agent.run() — Phase 1 iteration loop', () => {
     // No crash — the failed iteration is recorded with the prior score.
     expect(result.iterations).toHaveLength(2);
     expect(result.scores.classify.raw).toBeGreaterThan(0);
+  });
+});
+
+describe('Agent.run() — Phase 2 screenshot input', () => {
+  it('passes an image content block when screenshot path is provided', async () => {
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 200, output_tokens: 340 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
+    await agent.run({
+      brief: 'dashboard card',
+      screenshot: '/fake/screenshot.png',
+    });
+
+    expect(mockMessageCreate).toHaveBeenCalledTimes(1);
+    const callArgs = mockMessageCreate.mock.calls[0]?.[0] ?? {};
+
+    // The user message content must be an array (not a plain string).
+    const userMessage = callArgs.messages?.[0];
+    expect(Array.isArray(userMessage?.content)).toBe(true);
+
+    // First element is the image block.
+    const [imageBlock, textBlock] = userMessage?.content ?? [];
+    expect(imageBlock?.type).toBe('image');
+    expect(imageBlock?.source?.type).toBe('base64');
+    expect(imageBlock?.source?.media_type).toBe('image/png');
+    expect(typeof imageBlock?.source?.data).toBe('string');
+    expect(imageBlock?.source?.data.length).toBeGreaterThan(0);
+
+    // Second element is the text block.
+    expect(textBlock?.type).toBe('text');
+    expect(typeof textBlock?.text).toBe('string');
+    // The text brief should mention the screenshot.
+    expect(textBlock?.text).toContain('reference screenshot');
+  });
+
+  it('sends a plain string content when no screenshot is provided (backwards compat)', async () => {
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 100, output_tokens: 200 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
+    await agent.run({ brief: 'pricing page' });
+
+    const callArgs = mockMessageCreate.mock.calls[0]?.[0] ?? {};
+    const userMessage = callArgs.messages?.[0];
+    // Plain string when no screenshot.
+    expect(typeof userMessage?.content).toBe('string');
+  });
+});
+
+describe('Agent.run() — Phase 2 atlas fingerprint context', () => {
+  it('augments the system prompt with project-context preamble when cwd resolves a category', async () => {
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 150, output_tokens: 300 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
+    await agent.run({ brief: 'sidebar nav', cwd: '/fake/project' });
+
+    const callArgs = mockMessageCreate.mock.calls[0]?.[0] ?? {};
+    // System prompt should contain the project context preamble.
+    expect(typeof callArgs.system).toBe('string');
+    expect(callArgs.system).toContain('## Project context');
+    expect(callArgs.system).toContain('saas-dashboard');
+    // Original system prompt content should still be present.
+    expect(callArgs.system).toContain('Token discipline');
+  });
+
+  it('does not augment the system prompt when atlas returns no category (graceful fallback)', async () => {
+    const { fingerprint } = await import('@atelier-oss/atlas');
+    vi.mocked(fingerprint).mockReturnValueOnce({
+      rootPath: '/fake/unknown',
+      category: null,
+      ranking: [],
+      exemplars: [],
+      shardPath: null,
+    });
+
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 100, output_tokens: 200 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
+    await agent.run({ brief: 'generic component', cwd: '/fake/unknown' });
+
+    const callArgs = mockMessageCreate.mock.calls[0]?.[0] ?? {};
+    // System prompt should be the bare SYSTEM_PROMPT — no preamble.
+    expect(callArgs.system).not.toContain('## Project context');
+    // Token discipline content should still be present.
+    expect(callArgs.system).toContain('Token discipline');
+  });
+
+  it('records atlasCategory in the intake and generate trace notes when cwd resolves', async () => {
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 100, output_tokens: 200 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
+    const result = await agent.run({ brief: 'data table', cwd: '/fake/project' });
+
+    const intakeEntry = result.trace.find((t) => t.phase === 'intake');
+    expect(intakeEntry?.notes?.atlasCategory).toBe('saas-dashboard');
+
+    const generateEntry = result.trace.find((t) => t.phase === 'generate');
+    expect(generateEntry?.notes?.atlasCategory).toBe('saas-dashboard');
   });
 });

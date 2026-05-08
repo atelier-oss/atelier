@@ -26,6 +26,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.32.1
         version: 0.32.1
+      '@atelier-oss/atlas':
+        specifier: workspace:*
+        version: link:../atlas
       '@atelier-oss/classify':
         specifier: workspace:*
         version: link:../classify
