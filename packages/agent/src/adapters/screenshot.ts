@@ -8,8 +8,11 @@
  * is performed — the SDK will error if the payload is malformed.
  */
 
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { extname } from 'node:path';
+
+/** Anthropic API per-image limit. Reject earlier so users see a clear error. */
+const MAX_SCREENSHOT_BYTES = 20 * 1024 * 1024;
 
 /** Anthropic SDK image content block (base64 variant). */
 export interface ImageContentBlock {
@@ -47,10 +50,18 @@ export function inferMediaType(filePath: string): ImageContentBlock['source']['m
 
 /**
  * Load a screenshot from disk and return an Anthropic image content block.
- * The file is read as binary and base64-encoded.
+ * The file is read as binary and base64-encoded. Files over 20 MB are
+ * rejected before encoding to avoid a memory spike on a doomed request.
  */
 export async function loadScreenshot(filePath: string): Promise<ImageContentBlock> {
   const media_type = inferMediaType(filePath);
+  const { size } = await stat(filePath);
+  if (size > MAX_SCREENSHOT_BYTES) {
+    const mb = (size / 1024 / 1024).toFixed(1);
+    throw new Error(
+      `Agent.screenshot: file "${filePath}" is ${mb} MB — exceeds Anthropic API limit of 20 MB. Resize or compress before passing.`,
+    );
+  }
   const buffer = await readFile(filePath);
   const data = buffer.toString('base64');
   return {

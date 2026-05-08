@@ -31,7 +31,14 @@ export async function intake(input: RunInput): Promise<NormalizedInput> {
   }
 
   if (input.cwd) {
-    normalized.atlasContext = await resolveAtlasContext(input.cwd);
+    try {
+      normalized.atlasContext = await resolveAtlasContext(input.cwd);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `Agent.run: atlas fingerprint failed for cwd "${input.cwd}": ${msg}`,
+      );
+    }
   }
 
   return normalized;

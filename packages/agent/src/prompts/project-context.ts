@@ -56,7 +56,7 @@ const CATEGORY_HINTS: Record<
     palette: 'neutral utilitarian',
     tips: [
       'Functional over decorative — bg-background, bg-card, bg-muted as the three surfaces',
-      'Action hierarchy: bg-primary CTA, bg-secondary secondary, bg-ghost tertiary',
+      'Action hierarchy: bg-primary CTA, bg-secondary secondary, bg-muted tertiary',
       'table rows: bg-card with hover:bg-muted transition',
     ],
   },

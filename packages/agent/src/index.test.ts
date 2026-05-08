@@ -33,6 +33,8 @@ const TINY_PNG_BUFFER = Buffer.from(
 
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn().mockResolvedValue(TINY_PNG_BUFFER),
+  // stat() is used by loadScreenshot() for the 20MB size guard.
+  stat: vi.fn().mockResolvedValue({ size: TINY_PNG_BUFFER.length }),
 }));
 
 const MOCK_ATLAS_RESULT = {

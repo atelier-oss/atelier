@@ -18,6 +18,7 @@
  */
 
 import type Anthropic from '@anthropic-ai/sdk';
+import type { MessageParam } from '@anthropic-ai/sdk/resources/messages';
 import { loadScreenshot } from '../adapters/screenshot';
 import type { ImageContentBlock } from '../adapters/screenshot';
 import { buildCodegenUserMessage } from '../prompts/codegen';
@@ -66,14 +67,14 @@ function extractCode(rawText: string): { content: string; path: string } {
 async function buildUserMessageContent(
   brief: string,
   screenshot: string | undefined,
-): Promise<string | Array<ImageContentBlock | { type: 'text'; text: string }>> {
+): Promise<MessageParam['content']> {
   const textBlock = buildCodegenUserMessage(brief, screenshot !== undefined);
 
   if (!screenshot) {
     return textBlock;
   }
 
-  const imageBlock = await loadScreenshot(screenshot);
+  const imageBlock: ImageContentBlock = await loadScreenshot(screenshot);
   return [imageBlock, { type: 'text', text: textBlock }];
 }
 
@@ -91,7 +92,7 @@ export async function generate(input: GenerateInput): Promise<GenerateOutput> {
     model: input.model,
     max_tokens: input.maxOutputTokens,
     system: systemPrompt,
-    messages: [{ role: 'user', content: userContent as Parameters<typeof input.client.messages.create>[0]['messages'][0]['content'] }],
+    messages: [{ role: 'user', content: userContent }],
   });
 
   const textBlock = response.content.find(
