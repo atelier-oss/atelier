@@ -1,7 +1,7 @@
 {
   "name": "@atelier-oss/agent",
-  "version": "0.3.0",
-  "description": "Atelier Design Agent — text-brief-to-token-conformant React/Tailwind code via Sonnet 4.6 + @atelier-oss/classify. Phase 3a adds Figma REST integration with variable role-mapping preamble.",
+  "version": "0.4.0",
+  "description": "Atelier Design Agent — text-brief-to-token-conformant React/Tailwind code via Sonnet 4.6 + @atelier-oss/classify. Phase 2.x adds the DESIGN.md scaffolder (atlas + figma → disk).",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

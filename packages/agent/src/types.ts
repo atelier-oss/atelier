@@ -17,6 +17,20 @@ export interface RunInput {
    * REST API and includes a role-mapping preamble in the system prompt.
    * Requires FIGMA_TOKEN (or opts.figmaToken). */
   figma?: string;
+  /**
+   * Phase 2.x: opt in to writing a canonical `<cwd>/DESIGN.md` before
+   * generate runs, when atlas category or figma context resolves.
+   *
+   * Default: false. No-op when neither cwd nor figma is set, or when the
+   * file already exists (never clobbered).
+   */
+  scaffoldDesignMd?: boolean;
+}
+
+/** A file written to disk by the scaffold phase. */
+export interface ScaffoldedFile {
+  path: string;
+  content: string;
 }
 
 /** A single emitted file from the codegen phase. */
@@ -29,7 +43,7 @@ export interface CodeFile {
 
 /** One entry in the run trace — ordered by execution. */
 export interface RunTraceEntry {
-  phase: 'intake' | 'generate' | 'verify' | 'iterate' | 'deliver';
+  phase: 'intake' | 'scaffold' | 'generate' | 'verify' | 'iterate' | 'deliver';
   /** ISO-8601 timestamp at phase start. */
   startedAt: string;
   /** Wall-clock duration of the phase in ms. */
@@ -74,6 +88,12 @@ export interface RunResult {
   cost: RunCost;
   /** Iteration history — empty when iterate=0 (Phase 0 mode). */
   iterations: IterationRecord[];
+  /**
+   * Files written to disk by the scaffold phase.
+   * Present only when the scaffold phase wrote a file; omitted when the
+   * scaffolder was opted-out, skipped, or had no context to act on.
+   */
+  scaffoldedFiles?: ScaffoldedFile[];
 }
 
 /** Per-run model overrides. Phase 0 only uses `codegen`. */
