@@ -1,0 +1,6 @@
+{
+  "id": "03-chat-bubble",
+  "brief": "agent chat bubble pair — one right-aligned user bubble with a tinted background and one left-aligned agent bubble with a hairline border. User bubble contains the question; agent bubble contains the response with a streaming cursor at the end of the text.",
+  "category": "conversational-agent-ui",
+  "minConformance": 0.5
+}
