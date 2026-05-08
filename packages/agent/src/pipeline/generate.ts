@@ -1,5 +1,5 @@
 /**
- * Generate phase — single non-streaming Anthropic call to produce
+ * Generate phase -- single non-streaming Anthropic call to produce
  * a React+Tailwind component from a brief.
  *
  * Phase 0 contract: one claude-sonnet-4-6 call with the system prompt + a
@@ -11,6 +11,11 @@
  *     with an image block (base64) followed by the text brief block.
  *   - When projectContextPreamble is provided, it is prepended to the system
  *     prompt before the token-discipline rules.
+ *
+ * Phase 3a additions:
+ *   - When figmaContextPreamble is provided, it is appended after the
+ *     projectContextPreamble (atlas-context first, figma-context second --
+ *     figma is more specific and should inform token choices).
  *
  * CARL [OPUS-4-7] sampling policy: do NOT pass temperature / top_p / top_k.
  * Adaptive thinking only (Sonnet 4.6 uses its default thinking behavior;
@@ -34,6 +39,8 @@ export interface GenerateInput {
   screenshot?: string;
   /** Formatted project-context preamble to prepend to the system prompt. */
   projectContextPreamble?: string;
+  /** Formatted Figma-context preamble to append after projectContextPreamble. */
+  figmaContextPreamble?: string;
 }
 
 export interface GenerateOutput {
@@ -45,7 +52,7 @@ export interface GenerateOutput {
   model: string;
 }
 
-// Tolerant of compact closing fences — Sonnet 4.6 routinely emits the closing
+// Tolerant of compact closing fences -- Sonnet 4.6 routinely emits the closing
 // ``` without a preceding newline when the system prompt forbids surrounding prose.
 const TSX_BLOCK_RE = /```tsx\s*\n([\s\S]*?)\n?```/;
 const COMPONENT_NAME_RE = /export\s+default\s+function\s+([A-Za-z_$][A-Za-z0-9_$]*)/;
@@ -78,15 +85,37 @@ async function buildUserMessageContent(
   return [imageBlock, { type: 'text', text: textBlock }];
 }
 
-/** Build the effective system prompt, optionally prepending project context. */
-function buildSystemPrompt(projectContextPreamble: string | undefined): string {
-  if (!projectContextPreamble) return SYSTEM_PROMPT;
-  return `${projectContextPreamble}\n\n${SYSTEM_PROMPT}`;
+/**
+ * Build the effective system prompt, optionally prepending 0-2 preambles.
+ *
+ * Ordering: atlas-context (category bias) -> figma-context (file-specific
+ * color roles) -> core system prompt (token discipline rules).
+ */
+function buildSystemPrompt(
+  projectContextPreamble: string | undefined,
+  figmaContextPreamble: string | undefined,
+): string {
+  const parts: string[] = [];
+
+  if (projectContextPreamble) {
+    parts.push(projectContextPreamble);
+  }
+
+  if (figmaContextPreamble) {
+    parts.push(figmaContextPreamble);
+  }
+
+  parts.push(SYSTEM_PROMPT);
+
+  return parts.join('\n\n');
 }
 
 export async function generate(input: GenerateInput): Promise<GenerateOutput> {
   const userContent = await buildUserMessageContent(input.brief, input.screenshot);
-  const systemPrompt = buildSystemPrompt(input.projectContextPreamble);
+  const systemPrompt = buildSystemPrompt(
+    input.projectContextPreamble,
+    input.figmaContextPreamble,
+  );
 
   const response = await input.client.messages.create({
     model: input.model,

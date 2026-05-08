@@ -1,11 +1,11 @@
 /**
- * @atelier-oss/agent — text-brief-to-token-conformant React/Tailwind code
- * via Sonnet 4.6 + @atelier-oss/classify. Phase 2: screenshot input + atlas
- * fingerprint context.
+ * @atelier-oss/agent -- text-brief-to-token-conformant React/Tailwind code
+ * via Sonnet 4.6 + @atelier-oss/classify. Phase 3a: Figma REST integration
+ * with role-mapping preamble.
  *
  * Public API:
- *   const agent = new Agent({ apiKey?, models?, maxOutputTokens? });
- *   const result = await agent.run({ brief, screenshot?, cwd? });
+ *   const agent = new Agent({ apiKey?, models?, maxOutputTokens?, figmaToken? });
+ *   const result = await agent.run({ brief, screenshot?, cwd?, figma? });
  *
  * The full plan lives at:
  *   ~/Projects/memory-vault/planning/2026-05-08-atelier-design-agent.md
@@ -21,6 +21,7 @@ import { generate } from './pipeline/generate';
 import { intake } from './pipeline/intake';
 import { iterate } from './pipeline/iterate';
 import { verify } from './pipeline/verify';
+import { buildFigmaContextPreamble, inferRole } from './prompts/figma-context';
 import type {
   AgentOptions,
   IterationRecord,
@@ -42,7 +43,7 @@ export type {
 
 export { DEFAULT_CODEGEN_MODEL, DEFAULT_MAX_OUTPUT_TOKENS } from './models/defaults';
 
-export const VERSION = '0.2.0' as const;
+export const VERSION = '0.3.0' as const;
 
 export const DEFAULT_ITERATE_MAX = 3 as const;
 export const DEFAULT_THRESHOLD = 0.95 as const;
@@ -53,6 +54,7 @@ export class Agent {
   private readonly maxOutputTokens: number;
   private readonly maxIterations: number;
   private readonly threshold: number;
+  private readonly figmaToken: string | undefined;
 
   constructor(options: AgentOptions = {}) {
     const apiKey = options.apiKey ?? process.env.ANTHROPIC_API_KEY;
@@ -66,6 +68,7 @@ export class Agent {
     this.maxOutputTokens = options.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS;
     this.maxIterations = options.iterate ?? DEFAULT_ITERATE_MAX;
     this.threshold = options.threshold ?? DEFAULT_THRESHOLD;
+    this.figmaToken = options.figmaToken ?? process.env.FIGMA_TOKEN;
   }
 
   async run(input: RunInput): Promise<RunResult> {
@@ -74,8 +77,10 @@ export class Agent {
     // --- Intake ---
     const intakeStart = Date.now();
     const intakeAt = new Date(intakeStart).toISOString();
-    const normalized = await intake(input);
+    const normalized = await intake(input, this.figmaToken);
     const atlasCategory = normalized.atlasContext?.atlas.category ?? null;
+    const figmaFileKey = normalized.figmaContext?.fileKey ?? null;
+    const figmaVariableCount = normalized.figmaContext?.variables.length ?? 0;
     trace.push({
       phase: 'intake',
       startedAt: intakeAt,
@@ -84,12 +89,26 @@ export class Agent {
         briefLength: normalized.brief.length,
         ...(input.screenshot ? { screenshot: input.screenshot } : {}),
         ...(atlasCategory ? { atlasCategory } : {}),
+        ...(figmaFileKey ? { figmaFileKey, figmaVariableCount } : {}),
       },
     });
 
     // --- Generate ---
     const genStart = Date.now();
     const genAt = new Date(genStart).toISOString();
+
+    // Build Figma context preamble when available.
+    const figmaContextPreamble = normalized.figmaContext
+      ? buildFigmaContextPreamble(normalized.figmaContext)
+      : undefined;
+
+    // Count role-mapped COLOR variables for the trace note.
+    const figmaMappedRoleCount = normalized.figmaContext
+      ? normalized.figmaContext.variables.filter(
+          (v) => v.type === 'COLOR' && inferRole(v.name) !== 'unmapped',
+        ).length
+      : 0;
+
     const generated = await generate({
       brief: normalized.brief,
       client: this.client,
@@ -97,6 +116,7 @@ export class Agent {
       maxOutputTokens: this.maxOutputTokens,
       screenshot: normalized.screenshot,
       projectContextPreamble: normalized.atlasContext?.preamble ?? undefined,
+      figmaContextPreamble,
     });
     trace.push({
       phase: 'generate',
@@ -108,6 +128,9 @@ export class Agent {
         output_tokens: generated.usage.output_tokens,
         ...(normalized.screenshot ? { screenshotUsed: true } : {}),
         ...(atlasCategory ? { atlasCategory } : {}),
+        ...(figmaFileKey
+          ? { figmaFileKey, figmaVariableCount, figmaMappedRoleCount }
+          : {}),
       },
     });
 

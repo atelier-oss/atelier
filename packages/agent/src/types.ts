@@ -12,6 +12,11 @@ export interface RunInput {
    * the project via @atelier-oss/atlas and includes the matched category
    * + exemplars in the system prompt as project context. */
   cwd?: string;
+  /** Figma file URL (https://www.figma.com/file/ABC123/...) or raw file key
+   * (ABC123). When provided, the agent fetches variables/styles via the Figma
+   * REST API and includes a role-mapping preamble in the system prompt.
+   * Requires FIGMA_TOKEN (or opts.figmaToken). */
+  figma?: string;
 }
 
 /** A single emitted file from the codegen phase. */
@@ -95,4 +100,8 @@ export interface AgentOptions {
    * conformance ≥ threshold. Default: 0.95.
    */
   threshold?: number;
+  /** Figma personal access token with file:read scope.
+   * Falls back to FIGMA_TOKEN env var.
+   * Only required when input.figma is set. */
+  figmaToken?: string;
 }
