@@ -1,0 +1,8 @@
+{
+  "id": "07-dusty-teal-hero",
+  "brief": "marketing hero with a muted dusty teal accent on a warm cream canvas. Display headline, sub-copy, primary CTA, and a small badge above the headline reading 'New for 2026'. Editorial typography pairing — serif display + sans body.",
+  "category": "marketing-landing",
+  "minConformance": 0.5,
+  "difficulty": "hard",
+  "trap": "muted-color-language-tempts-arbitrary-hex"
+}
