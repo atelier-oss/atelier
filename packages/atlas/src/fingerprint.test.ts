@@ -25,8 +25,8 @@ const CORPUS: ReadonlyArray<{ path: string; expected: BuildCategory }> = [
 describe('loadCategories', () => {
   it('parses categories.json', () => {
     const cats = loadCategories();
-    expect(cats.version).toBe(1);
-    expect(cats.categories).toHaveLength(7);
+    expect(cats.version).toBe(2);
+    expect(cats.categories).toHaveLength(8);
     expect(cats.min_signals_for_classification).toBeGreaterThan(0);
   });
 });
@@ -71,6 +71,12 @@ describe('getShard', () => {
     const md = getShard('saas-dashboard');
     expect(md.length).toBeGreaterThan(100);
     expect(md.toLowerCase()).toMatch(/dashboard|saas/);
+  });
+
+  it('reads the cinematic-hero-catalog shard (intent-only category)', () => {
+    const md = getShard('cinematic-hero-catalog');
+    expect(md.length).toBeGreaterThan(100);
+    expect(md.toLowerCase()).toMatch(/motionsites|mendes|cinematic/);
   });
 
   it('throws on an unknown category', () => {

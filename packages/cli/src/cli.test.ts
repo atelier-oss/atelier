@@ -106,16 +106,17 @@ describe('runClassify (programmatic)', () => {
 });
 
 describe('runAtlasList (programmatic)', () => {
-  it('lists all 7 categories', () => {
+  it('lists all 8 categories', () => {
     const r = runAtlasList();
-    expect(r.categories.length).toBe(7);
+    expect(r.categories.length).toBe(8);
     expect(r.categories).toContain('saas-dashboard');
+    expect(r.categories).toContain('cinematic-hero-catalog');
   });
 
   it('emits valid JSON when format=json', () => {
     const r = runAtlasList('json');
     const parsed = JSON.parse(r.output);
-    expect(parsed.categories.length).toBe(7);
+    expect(parsed.categories.length).toBe(8);
   });
 });
 

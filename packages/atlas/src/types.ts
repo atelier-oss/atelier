@@ -7,7 +7,8 @@ export type BuildCategory =
   | 'conversational-agent-ui'
   | 'trading-analytics'
   | 'internal-ops'
-  | 'marketplace-listing';
+  | 'marketplace-listing'
+  | 'cinematic-hero-catalog';
 
 export interface CategoryFingerprint {
   files?: string[];

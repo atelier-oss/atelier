@@ -63,6 +63,69 @@ Top-of-funnel pages whose entire job is to move a visitor from "I clicked a link
 - Stock photos when the brand has a real audience to photograph instead.
 - Shadow stacks on near-black backgrounds (read as JPEG smudge — use borders + value contrast).
 
+## Cinematic scroll-pin variant (Mendes pattern)
+
+A premium-feeling scroll-driven hero that simulates 3D depth without any actual 3D rendering. Production-extracted from Jo Mendes's Virtual Fridge preview at `site-checkout.preview.emergentagent.com`. Reach for this when the brief calls for "cinematic hero," "feels expensive," or "fly-through depth" and the budget allows for one short AI-generated loop video (Sora-2 / Veo-3 / Higgsfield, ~$2-5 per generation).
+
+The technique is plain React + plain CSS — no GSAP, no ScrollMagic, no `<canvas>`, no react-three-fiber. A single scroll handler reads `getBoundingClientRect()` on the outer wrap and writes CSS variables that drive opacity, transform, and scale on stacked elements.
+
+### Core scroll-pin contract
+
+- Outer container at `height: 600vh` (six viewports tall) defines the scroll timeline.
+- Inner stage uses `position: sticky; top: 0; height: 100vh` — pins to the viewport as the outer container scrolls past.
+- One scroll handler computes a `0..1` progress value from the wrap's bounding rect and writes CSS variables on the root: `--vf-hero-sequence-anchor-y`, `--vf-feature-mobile-x`, `--vf-feature-phone-group-scale`, `--vf-hero-phone-object-x`, `--vf-hero-phone-scale`. CSS reacts; React state stays out.
+- Beats are time-windowed scroll quantiles (e.g., `0.0–0.2`, `0.2–0.4`) — each named copy block has an entry/exit window that drives `opacity` + `translateY`.
+
+```html
+<section id="top" class="vf-hero-wrap" style="height: 600vh;">
+  <div class="vf-hero-sticky">
+    <video class="vf-hero-video" src="/hero/A.mp4" autoplay playsinline preload="auto" muted style="opacity: 1;" />
+    <video class="vf-hero-video" src="/hero/B.mp4" autoplay playsinline preload="auto" muted style="opacity: 0;" />
+    <div class="vf-hero-sequence-layer">
+      <div class="vf-hero-sequence" style="opacity: 0; transform: translate(14px, calc(var(--vf-hero-sequence-anchor-y, -50%) + 18px));">
+        <p class="vf-display">Still tracking meals the hard way?</p>
+      </div>
+      <!-- repeat for each beat -->
+    </div>
+  </div>
+</section>
+```
+
+### Component vocabulary
+
+- **Multi-video crossfade hero** — two `<video>` elements stacked, opacity-toggled by scroll quantile. Cleaner than `<source>` swap mid-playback; handles AI-generated loops natively. Safari mobile autoplay requires both `playsinline` AND `muted` (Mendes shows `playsinline` only — set `muted` explicitly).
+- **Sequence-beat layer** — N text blocks stacked, each with windowed scroll quantiles determining `opacity` + `translateY`. Three to five beats is the sweet spot; more and the brief gets lost in interpolation.
+- **Sticky feature panel with sprite reveal** — second sticky stage further down (`<section class="vf-feature-sequence" style="height: 600vh;">`); a foreground product image stays centered while ingredient/feature sprites animate in from off-screen via scroll-driven `transform`. Pair with invisible `<div class="vf-anchor" style="top: 90vh;">` anchors so header `#meals` links land at the right beat.
+- **Marquee carousel** — `vf-marquee-track` with cards duplicated in DOM, `@keyframes` translateX from `0` to `-50%` infinite linear. Seamless because the duplicates fill the gap.
+- **Wave button** — high-emphasis CTA with an embedded `<video autoplay loop playsinline muted>` masked by border-radius. Loop video gives motion without reading as "ad." Use sparingly (one per page); promotional, not navigational.
+- **Feature-card pricing grid with video bg** — two-card pricing/access pattern (`vf-plan--connected`); the highlighted card carries a `<video>` background under the copy. Standard card on left, video card on right.
+- **Anchor-driven sticky-scroll nav** — invisible `<div class="vf-anchor" style="top: 90vh;">` markers inside the long-scroll section give the header nav real targets without breaking the sticky composition.
+- **Grain overlay** — SVG fractal-noise filter at low opacity on a root pseudo-element (`.vf-grain` or `.jarvis-glass::after`). Adds physicality on dark canvases. Already shipping in PrettyFly OS as `lib/coach/visual.ts:74` — cross-confirms the technique is converged across multiple cinematic surfaces.
+
+### Editorial typography pairing
+
+The Mendes site loads Figtree, Inter, Inter Tight, JetBrains Mono, and Nanum Pen Script — sans display + serif accent + handwritten flourish. Editorial without committing to one tone.
+
+| Class | Style |
+|---|---|
+| `.vf-display` | Large display headline (Inter Tight or similar tight-tracked sans) |
+| `.vf-feature-label` | Uppercase, letter-spaced eyebrow (~12-14px) |
+| `.vf-serif` | Serif accent for product-feature headlines |
+| `.vf-hero-sub-copy` | Body copy at comfortable reading line-length |
+
+### Build recipe (4 steps)
+
+1. **Generate the loop video** — Sora-2 or Veo-3 (or Higgsfield for camera fly-throughs). 8-12s loop, ~$2-5. Camera fly-through is the depth illusion; the AI does the work the WebGL would otherwise.
+2. **Pick a layout reference** — clean modern site for structure; the AI mimics structure, not aesthetic. Aesthetic comes from the loop video + token discipline.
+3. **Brief the agent with the technique above** — `/design-stack "marketing landing using the Mendes scroll-pin pattern, anchored to <Sentinel AI> visual feel"` — the cinematic-hero-catalog gives the visual anchor; this section gives the technical pattern.
+4. **Expect 50-80% on first generation, polish the last 20-50%** — the scroll math is mechanical; the copy timing and visual anchors take iteration. Lock the scroll-pin contract first, fine-tune beats second.
+
+### When NOT to reach for it
+
+- **Authenticated dashboards** — operators don't want a 600vh scroll hero on `/login` or `/dashboard`. Use `internal-ops.md` or `saas-dashboard.md` defaults.
+- **Pages without a budget for a generated video** — the technique without the loop falls flat. A static photo + sticky stage is just a long page.
+- **Mobile-only contexts** — sticky + 600vh scrolls work on mobile, but autoplay-muted-video battery cost on cellular is real. Pair with `prefers-reduced-motion` to fall back to a single static frame.
+
 ## Default DESIGN.md template
 
 ```yaml

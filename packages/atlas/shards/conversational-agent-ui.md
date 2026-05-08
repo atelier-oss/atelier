@@ -68,6 +68,25 @@ Conversational agent UI is the surface where a human and an autonomous (or semi-
 - **Discord** — slash commands as the dominant UX language across an ecosystem; teaches users that `/` is the affordance for power.
 - **Anthropic Workbench** — system prompt + message history side-by-side; reference for split-view chat where the inputs and outputs are equally first-class.
 
+## Component reference (21st.dev open-source)
+
+The community-tier components on [21st.dev](https://21st.dev/home) (YC-backed, MIT-flavored) are the closest thing to a canonical open library for AI / agent-UI primitives. Each has a copy-paste code block on its component page — `https://21st.dev/community/components/{author}/{slug}/default`. Top picks below; pull the code from 21st.dev directly when reaching for one of these patterns. (We do NOT adopt the 21st Agents SDK — duplicates Anthropic SDK + Inngest + Supabase stack.)
+
+| Component | Author | Purpose | Fit |
+|---|---|---|---|
+| [AI Prompt Box](https://21st.dev/community/components/easemize/ai-prompt-box/default) | easemize | Prompt input with AI-styling | **Direct PFOS Jarvis fit** — cmd-K / intent-classify input baseline |
+| [V0 AI Chat](https://21st.dev/community/components/kokonutd/v0-ai-chat/default) | kokonutd | Vercel-V0-style chat surface | Canonical chat-with-streaming reference |
+| [Animated AI Chat](https://21st.dev/community/components/jatin-yadav05/animated-ai-chat/default) | jatin-yadav05 | Chat with motion-react entry/exit | **Direct PFOS fit** — cmd-K cinematic-open dialog pattern |
+| [Agent Plan](https://21st.dev/community/components/isaiahbjork/agent-plan/default) | isaiahbjork | Step-by-step plan display | Mission-control / agent-dispatch surface |
+| [ChatGPT Prompt Input](https://21st.dev/community/components/easemize/chatgpt-prompt-input/default) | easemize | Faithful ChatGPT input clone | Conversational reference |
+| [AI Gen](https://21st.dev/community/components/aliimam/ai-gen/default) | aliimam | Generation request UI | Image / asset-generation surface |
+| [Animated AI Input](https://21st.dev/community/components/kokonutd/animated-ai-input/default) | kokonutd | Animated input with focus effects | **Direct PFOS fit** — cmd-K palette focus styling |
+| [Message Dock](https://21st.dev/community/components/isaiahbjork/message-dock/default) | isaiahbjork | Dock-style message bar | **Direct PFOS fit** — biometric-strip / voice-fallback variant |
+| [AI Chat Input](https://21st.dev/community/components/hextaui/ai-chat-input/default) | hextaui | Standard chat input | Fallback baseline when nothing fancier fits |
+| [Hero 1](https://21st.dev/community/components/hextaui/hero-1/default) | hextaui | Generic hero block | Out-of-category — surfaces in `marketing-landing.md` instead |
+
+Recurring themes across the registry that are worth honoring as defaults: the AI prompt box has displaced the search bar as the primary input affordance (5 of the top 10 are prompt-input variants); motion-react / framer-motion entry/exit on every component is table stakes, not optional; dark-by-default is the convention for agent surfaces (every preview ships dark) — operator-fatigue evidence converges on the same answer.
+
 ## Anti-patterns
 
 - Modal dialogs for approval — interrupts flow, breaks scroll context. Use inline approval cards anchored to the requesting agent turn.
