@@ -1,0 +1,8 @@
+{
+  "id": "19-medical-records-table",
+  "brief": "patient records data table with selectable rows for a healthcare admin tool. Columns: checkbox, patient name, MRN, last visit (date), status badge, actions menu. Use sky-500 for the focus ring on the active row and emerald-600 for the 'active' status badge background. Header row is sticky. Pagination at the bottom right with page-N selector and page-size dropdown. Row hover state slightly tints the row background.",
+  "category": "saas-dashboard",
+  "difficulty": "hard",
+  "trap": "explicit-palette-in-brief",
+  "fresh-v3": true
+}

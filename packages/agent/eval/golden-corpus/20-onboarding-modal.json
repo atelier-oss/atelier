@@ -1,0 +1,7 @@
+{
+  "id": "20-onboarding-modal",
+  "brief": "onboarding modal that appears on first login. Centered overlay with a backdrop. Inside: a title ('Welcome — let's set up your workspace'), a two-line description, two CTAs (primary: 'Get started'; secondary: 'Skip for now'), and a close X icon in the top-right corner. The modal has rounded corners, a subtle shadow, and uses the project's surface tokens. Width caps at ~480px on desktop, full-width with margin on mobile.",
+  "category": "saas-dashboard",
+  "difficulty": "easy",
+  "fresh-v3": true
+}

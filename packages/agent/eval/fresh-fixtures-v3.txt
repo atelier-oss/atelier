@@ -1,0 +1,12 @@
+# Phase 4 v3 fresh fixtures — authored against benchmarks/spec-v3.md.
+# These five fixtures have NO vocabulary overlap with fixtures 01-15 from
+# Phase 0. The harness reads this list to mark these "fresh" in the v3
+# report so readers can see whether the lift is corpus-specific.
+#
+# Per spec-v3 §Corpus: 2 poetic-color, 2 direct-spec, 1 clean control.
+
+16-aubergine-music-card
+17-champagne-watch-detail
+18-fintech-portfolio-tile
+19-medical-records-table
+20-onboarding-modal

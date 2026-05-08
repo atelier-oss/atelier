@@ -1,0 +1,8 @@
+{
+  "id": "18-fintech-portfolio-tile",
+  "brief": "portfolio summary tile for a fintech dashboard. Show three KPI cells in a horizontal row: Total Value, Today's Change, YTD Return. Use brand color #2E7D32 for gains and #C62828 for losses on the change/return numbers. Each cell has a label (small, muted), a primary number (large, bold, monospace), and a secondary delta number (smaller, colored by sign). The whole tile sits inside a card with a subtle border.",
+  "category": "saas-dashboard",
+  "difficulty": "hard",
+  "trap": "explicit-hex-in-brief",
+  "fresh-v3": true
+}

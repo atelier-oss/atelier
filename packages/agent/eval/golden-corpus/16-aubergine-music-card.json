@@ -1,0 +1,8 @@
+{
+  "id": "16-aubergine-music-card",
+  "brief": "music player card for a streaming service. Deep aubergine canvas with a sunbeam-yellow accent on the play/pause button. The track scrubber is a fog-grey rounded bar with the played portion in aubergine-light. Below: track title (bold), artist (lighter), and three small icon buttons (shuffle, repeat, queue). Card has rounded corners and lives in a dark surrounding context.",
+  "category": "marketing-landing",
+  "difficulty": "hard",
+  "trap": "poetic-color-language",
+  "fresh-v3": true
+}
