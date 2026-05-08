@@ -4,9 +4,13 @@ Public OSS toolkit for projects using `DESIGN.md` (Google Labs spec). Pitch: **v
 
 ## Status
 
-Phase 2 in progress. Public launch deferred until 30-repo benchmark passes.
+**v0.1.0 shipped 2026-05-08** — all 6 packages live on npm at `@atelier-oss/*` with sigstore provenance. Repo public at github.com/atelier-oss/atelier.
 
-Phase 1 MVB result (2026-05-07): DESIGN.md group 79.9% token conformance vs 39.0% control = +105.1% relative lift. Kill switch cleared.
+Phase 1 v2 benchmark (2026-05-07): three-arm corpus (24 repos), v2-broad primary gate cleared at **+16.87pp absolute** / **+149.98% relative**. v2-strict agrees on verdict (sensitivity check passes). Full result in `benchmarks/results/2026-05-07-phase-1-v2.md`; pre-registered methodology in `benchmarks/spec-v2.md`.
+
+Upstream PR #76 at google-labs-code/design.md is open as DRAFT (proposal-only doc). Pending: Google CLA signature.
+
+Next milestone: **v0.2.0 (Tailwind v4)** — see `docs/v0.2.0-plan.md`.
 
 ## Repo layout
 
@@ -44,6 +48,6 @@ atelier/
 - Phase 2.1: TS classify matches Python on all 60 fixture rows.
 - Phase 2.2+: documented in PLAN per phase.
 
-## Public launch (Phase 3, NOT here)
+## Public launch — DONE
 
-`npm publish`, GitHub org provisioning, upstream PR open — all gated on 30-repo benchmark expansion clearing +40% lift threshold.
+`npm publish` (6 packages, sigstore provenance), GitHub org `atelier-oss` provisioned (repo public), upstream PR #76 open as DRAFT — all completed 2026-05-08 after spec-v2 three-arm methodology cleared the +15pp gate at +16.87pp.
