@@ -18,7 +18,12 @@ jobs:
   release:
     name: changeset version + publish
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # Only publish from the canonical atelier-oss repo; staging mirrors
+    # (7alexhale5-rgb/atelier and any forks) skip the publish step so
+    # they don't generate failed provenance attempts in the sigstore log.
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success'
+          && github.repository == 'atelier-oss/atelier' }}
     steps:
       - uses: actions/checkout@v4
         with:
