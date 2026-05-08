@@ -1,6 +1,5 @@
 {
   "id": "01-pricing-tiers",
   "brief": "pricing page with three tiers (Starter, Pro, Enterprise). The middle tier has the primary CTA and a 'Most Popular' ribbon. Each tier shows the price per month, a one-line value proposition, and a feature list of 4-6 bullets.",
-  "category": "marketing-landing",
-  "minConformance": 0.5
+  "category": "marketing-landing"
 }

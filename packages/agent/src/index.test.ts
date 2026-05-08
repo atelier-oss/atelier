@@ -62,8 +62,8 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('Agent.run() — Phase 0 shape', () => {
-  it('returns { code, scores, trace, cost } for a token-heavy generation', async () => {
+describe('Agent.run() — pipeline shape (Phase 0 + Phase 1)', () => {
+  it('returns { code, scores, trace, cost, iterations } for a token-heavy generation', async () => {
     mockMessageCreate.mockResolvedValueOnce({
       content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
       usage: { input_tokens: 120, output_tokens: 340 },
@@ -71,7 +71,8 @@ describe('Agent.run() — Phase 0 shape', () => {
     });
 
     const { Agent } = await import('./index');
-    const agent = new Agent({ apiKey: 'test-key' });
+    // iterate=0 disables the loop — pure Phase 0 shape, single API call.
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
     const result = await agent.run({ brief: 'pricing page with three tiers' });
 
     expect(result.code).toHaveLength(1);
@@ -83,11 +84,13 @@ describe('Agent.run() — Phase 0 shape', () => {
     expect(result.scores.classify.tokens).toBeGreaterThan(0);
     expect(result.scores.classify.conformance).toBeGreaterThanOrEqual(0.5);
 
-    expect(result.trace).toHaveLength(4);
+    // Phase 1 adds an 'iterate' phase entry between verify and deliver.
+    expect(result.trace).toHaveLength(5);
     expect(result.trace.map((t) => t.phase)).toEqual([
       'intake',
       'generate',
       'verify',
+      'iterate',
       'deliver',
     ]);
     for (const entry of result.trace) {
@@ -95,12 +98,16 @@ describe('Agent.run() — Phase 0 shape', () => {
       expect(entry.durationMs).toBeGreaterThanOrEqual(0);
     }
 
+    // iterate=0 still records the initial iteration (n=0) for trace continuity.
+    expect(result.iterations).toHaveLength(1);
+    expect(result.iterations[0]?.n).toBe(0);
+
     expect(result.cost.input_tokens).toBe(120);
     expect(result.cost.output_tokens).toBe(340);
     expect(result.cost.usd).toBeGreaterThan(0);
   });
 
-  it('returns a low conformance score for raw-palette-heavy code', async () => {
+  it('returns a low conformance score for raw-palette-heavy code with iterate=0', async () => {
     mockMessageCreate.mockResolvedValueOnce({
       content: [{ type: 'text', text: RAW_HEAVY_TSX }],
       usage: { input_tokens: 80, output_tokens: 60 },
@@ -108,7 +115,7 @@ describe('Agent.run() — Phase 0 shape', () => {
     });
 
     const { Agent } = await import('./index');
-    const agent = new Agent({ apiKey: 'test-key' });
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
     const result = await agent.run({ brief: 'a button' });
 
     expect(result.scores.classify.raw).toBeGreaterThan(0);
@@ -140,7 +147,7 @@ describe('Agent.run() — Phase 0 shape', () => {
     });
 
     const { Agent } = await import('./index');
-    const agent = new Agent({ apiKey: 'test-key' });
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
     await agent.run({ brief: 'anything' });
 
     expect(mockMessageCreate).toHaveBeenCalledWith(
@@ -155,6 +162,7 @@ describe('Agent.run() — Phase 0 shape', () => {
 
     const opusAgent = new Agent({
       apiKey: 'test-key',
+      iterate: 0,
       models: { codegen: 'claude-opus-4-7' },
     });
     await opusAgent.run({ brief: 'anything' });
@@ -172,12 +180,135 @@ describe('Agent.run() — Phase 0 shape', () => {
     });
 
     const { Agent } = await import('./index');
-    const agent = new Agent({ apiKey: 'test-key' });
+    const agent = new Agent({ apiKey: 'test-key', iterate: 0 });
     await agent.run({ brief: 'anything' });
 
     const callArgs = mockMessageCreate.mock.calls[0]?.[0] ?? {};
     expect(callArgs).not.toHaveProperty('temperature');
     expect(callArgs).not.toHaveProperty('top_p');
     expect(callArgs).not.toHaveProperty('top_k');
+  });
+});
+
+describe('Agent.run() — Phase 1 iteration loop', () => {
+  it('short-circuits the loop when initial conformance >= threshold', async () => {
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 100, output_tokens: 200 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 3, threshold: 0.95 });
+    const result = await agent.run({ brief: 'anything' });
+
+    // Token-heavy fixture is 100% conformance — should short-circuit.
+    expect(mockMessageCreate).toHaveBeenCalledTimes(1);
+    expect(result.iterations).toHaveLength(1);
+    expect(result.iterations[0]?.n).toBe(0);
+    expect(result.scores.classify.conformance).toBe(1);
+  });
+
+  it('triggers rewrite passes when initial conformance < threshold and recovers', async () => {
+    // Initial: raw-heavy, will fail threshold.
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: RAW_HEAVY_TSX }],
+      usage: { input_tokens: 80, output_tokens: 60 },
+      model: 'claude-sonnet-4-6',
+    });
+    // Iteration 1: model returns clean tokenized version.
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 200, output_tokens: 250 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 3, threshold: 0.95 });
+    const result = await agent.run({ brief: 'a button' });
+
+    expect(mockMessageCreate).toHaveBeenCalledTimes(2);
+    expect(result.iterations).toHaveLength(2); // n=0 (initial) + n=1 (rewrite)
+    expect(result.iterations[0]?.conformance).toBe(0); // raw-heavy initial
+    expect(result.iterations[1]?.conformance).toBe(1); // recovered
+
+    // BEST score is returned, not the most-recent.
+    expect(result.scores.classify.conformance).toBe(1);
+    expect(result.code[0]?.content).toContain('bg-background');
+
+    // Total cost rolls up both API calls.
+    expect(result.cost.input_tokens).toBe(280); // 80 + 200
+    expect(result.cost.output_tokens).toBe(310); // 60 + 250
+  });
+
+  it('caps at maxIterations when threshold is never met', async () => {
+    // Initial + 3 rewrites all return raw-heavy code; never clears 0.95.
+    for (let i = 0; i < 4; i++) {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: RAW_HEAVY_TSX }],
+        usage: { input_tokens: 80, output_tokens: 60 },
+        model: 'claude-sonnet-4-6',
+      });
+    }
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 3, threshold: 0.95 });
+    const result = await agent.run({ brief: 'a button' });
+
+    // 1 initial + 3 rewrites = 4 calls.
+    expect(mockMessageCreate).toHaveBeenCalledTimes(4);
+    expect(result.iterations).toHaveLength(4); // n=0..3
+    expect(result.iterations.map((r) => r.n)).toEqual([0, 1, 2, 3]);
+    expect(result.scores.classify.conformance ?? 1).toBeLessThan(0.95);
+  });
+
+  it('returns BEST emission seen across iterations, not the last', async () => {
+    // Initial: raw-heavy (0%).
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: RAW_HEAVY_TSX }],
+      usage: { input_tokens: 80, output_tokens: 60 },
+      model: 'claude-sonnet-4-6',
+    });
+    // Iteration 1: clean (100%).
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: TOKEN_HEAVY_TSX }],
+      usage: { input_tokens: 200, output_tokens: 250 },
+      model: 'claude-sonnet-4-6',
+    });
+    // Iteration 2: model regresses to raw-heavy. Should NOT overwrite the best.
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: RAW_HEAVY_TSX }],
+      usage: { input_tokens: 100, output_tokens: 60 },
+      model: 'claude-sonnet-4-6',
+    });
+
+    const { Agent } = await import('./index');
+    // threshold above 1.0 forces all iterations to run.
+    const agent = new Agent({ apiKey: 'test-key', iterate: 2, threshold: 2.0 });
+    const result = await agent.run({ brief: 'a button' });
+
+    // Best seen was iteration 1 (100%), not iteration 2 (0%).
+    expect(result.scores.classify.conformance).toBe(1);
+    expect(result.code[0]?.content).toContain('bg-background');
+    expect(result.iterations).toHaveLength(3); // n=0, 1, 2
+  });
+
+  it('stops gracefully on rewrite API errors and keeps best so far', async () => {
+    mockMessageCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: RAW_HEAVY_TSX }],
+      usage: { input_tokens: 80, output_tokens: 60 },
+      model: 'claude-sonnet-4-6',
+    });
+    mockMessageCreate.mockRejectedValueOnce(new Error('rate-limited'));
+
+    const { Agent } = await import('./index');
+    const agent = new Agent({ apiKey: 'test-key', iterate: 3, threshold: 0.95 });
+    const result = await agent.run({ brief: 'a button' });
+
+    // Initial + 1 failed rewrite, then break.
+    expect(mockMessageCreate).toHaveBeenCalledTimes(2);
+    // No crash — the failed iteration is recorded with the prior score.
+    expect(result.iterations).toHaveLength(2);
+    expect(result.scores.classify.raw).toBeGreaterThan(0);
   });
 });

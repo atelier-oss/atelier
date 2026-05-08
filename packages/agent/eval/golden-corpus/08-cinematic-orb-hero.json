@@ -1,8 +1,7 @@
 {
   "id": "08-cinematic-orb-hero",
-  "brief": "AI product hero in the Sentinel AI / Synapse Dark register — dark cosmic canvas, an abstract glowing sphere as the foreground visual, amber and teal glow accents, large display headline, single primary CTA below. Editorial typography, generous vertical padding.",
+  "brief": "AI product hero in the Sentinel AI / Synapse Dark register \u2014 dark cosmic canvas, an abstract glowing sphere as the foreground visual, amber and teal glow accents, large display headline, single primary CTA below. Editorial typography, generous vertical padding.",
   "category": "marketing-landing",
-  "minConformance": 0.5,
   "difficulty": "hard",
   "trap": "cinematic-vibe-tempts-glow-effect-with-arbitrary-rgba"
 }

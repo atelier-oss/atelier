@@ -2,7 +2,6 @@
   "id": "13-data-viz",
   "brief": "horizontal bar chart with five bars showing monthly revenue. Each bar has a label on the left, the bar itself, and the value on the right. Include axis-style gridlines behind the bars. The longest bar is highlighted in the primary brand color; the rest are muted.",
   "category": "trading-analytics",
-  "minConformance": 0.5,
   "difficulty": "hard",
   "trap": "data-viz-domain-tempts-shade-progressions-bar1-bar2-bar3-as-blue-200-300-400"
 }

@@ -1,7 +1,7 @@
 {
   "name": "@atelier-oss/agent",
-  "version": "0.0.1",
-  "description": "Atelier Design Agent — text-brief-to-token-conformant React/Tailwind code via Sonnet + atelier_classify. Phase 0 skeleton.",
+  "version": "0.1.0",
+  "description": "Atelier Design Agent — text-brief-to-token-conformant React/Tailwind code via Sonnet + atelier_classify. Phase 1 ships the closed-loop iteration that lifts soft-color-language briefs.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
