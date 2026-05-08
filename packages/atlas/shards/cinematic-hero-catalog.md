@@ -129,9 +129,9 @@ Product-led SaaS landing pages. Heavier on the dashboard-tease screenshot, light
 | Grow AI Talent | recruiting AI |
 | Nexora Automation | automation gradient |
 | Neuralyn | AI gradient — **PFOS-adjacent** |
-| Digitwist | AI-builder, gradient |
+| Digitwist AI Builder | AI-builder, gradient |
 | Bionova Biotech | biotech, photo-led |
-| Finlytic | finance AI |
+| Finlytic AI Agent | finance AI |
 | Planet Orbit | space-themed SaaS |
 | Nickel Payments | payments, fintech |
 | Power AI | AI-SaaS dark — **PFOS-adjacent** |
@@ -149,9 +149,28 @@ Product-led SaaS landing pages. Heavier on the dashboard-tease screenshot, light
 | Buzzentic | bright marketing-agency |
 | Orbit Engineers | engineering-services |
 
-### AI / SaaS cluster (overlaps)
+### AI / SaaS cluster
 
-Already enumerated above. The members worth flagging again as **direct anchors for PFOS Jarvis** (dark cinematic + amber/teal + abstract orb): Synapse Dark, Stellar AI, Sentinel AI, Neuralyn, Power AI, Bloom AI, Nexora Automation, Sync AI, Focus AI.
+The source catalog enumerates AI / SaaS as its own cluster. Several members appear in Hero and SaaS sections above; the full set is listed below for completeness.
+
+| Template | Visual theme | Cross-listing |
+|---|---|---|
+| AI Automation | gradient automation flow | new — AI/SaaS only |
+| Synapse | dark cinematic SaaS | also: SaaS (as Synapse Dark) |
+| Neuralyn | AI gradient orb | also: Hero, SaaS — **PFOS-adjacent** |
+| Sentinel AI | dark cosmic abstract sphere | also: Hero — **PFOS-adjacent** |
+| Bloom AI | AI gradient hero with orb | also: Hero — **PFOS-adjacent** |
+| Power AI | dark cinematic, amber accents | also: Hero, SaaS — **PFOS-adjacent** |
+| Digitwist AI Builder | gradient AI-builder | also: SaaS (as Digitwist) |
+| Finlytic AI Agent | finance AI | also: SaaS (as Finlytic) |
+| AI Designer Agency | dark designer-portfolio | also: Landing Page |
+| AI Image Generator UI | generation surface | new — AI/SaaS only |
+| Vortex Studio | studio AI workflow | new — AI/SaaS only |
+| Sync AI | gradient flow AI-product | also: Hero, SaaS |
+| Stellar AI | dark cosmic orb-hero | also: Hero, SaaS — **PFOS-adjacent** |
+| Focus AI | productivity AI | also: Landing Page, SaaS |
+
+**Direct anchors for PFOS Jarvis** (dark cinematic + amber/teal + abstract orb): Sentinel AI, Stellar AI, Power AI, Neuralyn, Bloom AI, Synapse Dark, Sync AI, Nexora Automation, Focus AI.
 
 ### Web3 / Fintech
 
@@ -259,6 +278,10 @@ The catalog clusters into a small number of repeatable visual languages. Pick th
 - **Picking five anchors at once.** Three is the cap. More than three drowns the visual contract; the agent ends up averaging instead of committing.
 - **Reaching for cinematic-hero anchors on a SaaS dashboard.** The dashboard surface lives in [`saas-dashboard.md`](./saas-dashboard.md) or [`internal-ops.md`](./internal-ops.md). Cinematic-hero anchors apply to marketing surfaces — the welcome page, not the authenticated app.
 - **Pairing dark-cosmic anchors with light-default brand tokens** without an explicit dark/light split in the project's DESIGN.md. The visual anchor and the token contract must agree, or the agent emits two designs glued together.
+
+## Fleet usage notes
+
+Some fleet projects draw from this catalog as a visual reference but classify canonically elsewhere via `examples_in_fleet`. The handoff for this ingest explicitly named two consumers: `prettyfly-os-jarvis-v2` (a future cinematic surface, listed in `examples_in_fleet`) and `advisory-board` (a current consumer that picks Synapse Dark / Sentinel AI as visual anchors but canonically classifies as `multi-llm-synthesis` — left out of `examples_in_fleet` because the `fingerprint.ts` canonical-name override loop would never reach `cinematic-hero-catalog` for it). Future fleet projects that adopt this catalog purely as a taste anchor should be documented here rather than in `examples_in_fleet` so the fingerprint contract stays clean.
 
 ## Source + license
 
