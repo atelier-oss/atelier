@@ -1,6 +1,6 @@
 {
   "name": "@atelier/classify",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Token-vs-raw classifier for Tailwind / inline color usage in TSX/JSX/TS/JS sources.",
   "license": "MIT",
   "type": "module",

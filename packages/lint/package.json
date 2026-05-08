@@ -1,13 +1,14 @@
 {
   "name": "@atelier/lint",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "DESIGN.md linter wrapping @google/design.md with the Atelier precedence rule and 8 sub-token vocabulary.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "exports": {
     ".": {

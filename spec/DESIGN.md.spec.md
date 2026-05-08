@@ -136,4 +136,4 @@ The wrapper's pinned upstream version is exposed as `UPSTREAM_PIN` (currently `0
 
 If `@google/design.md` adopts the precedence rule and/or the canonical role vocabulary upstream, the wrapper drops the corresponding layer in the next release and continues to behave identically. There is no value in maintaining a permanent fork once these semantics live upstream.
 
-If the upstream package is abandoned or relicensed incompatibly, `@atelier/lint` ships a minimal compatibility implementation under `internal/design-md-0.1.1-compat` to keep downstream consumers unbroken; switching is a single dependency swap.
+If the upstream package is abandoned or relicensed incompatibly, `@atelier/lint` will ship a minimal compatibility shim in a future release to keep downstream consumers unbroken; switching is a single dependency swap. The shim is unwritten until needed — pre-emptive maintenance of forked source against an active upstream is wasted effort.

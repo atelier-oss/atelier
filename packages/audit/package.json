@@ -1,6 +1,6 @@
 {
   "name": "@atelier/audit",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Project audit — token usage, contrast, motion, accessibility, design coverage, responsive layout.",
   "license": "MIT",
   "type": "module",

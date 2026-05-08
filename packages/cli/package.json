@@ -1,6 +1,6 @@
 {
   "name": "@atelier/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Atelier CLI — DESIGN.md-aware design-token toolkit. v0 generates. Cursor edits. Atelier enforces.",
   "license": "MIT",
   "type": "module",
@@ -10,7 +10,8 @@
     "atelier": "./dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE"
   ],
   "exports": {
     ".": {
