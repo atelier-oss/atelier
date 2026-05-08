@@ -75,15 +75,17 @@ describe('classifyTool', () => {
 });
 
 describe('auditTool', () => {
-  it('returns 0 findings on an empty project', async () => {
+  it('emits exactly one warn-loud finding on an empty project', async () => {
     const root = fresh();
     const r = await auditTool({ root });
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.data.rootPath).toBe(root);
-      // Empty dir: file-dependent sections are 0; contrast section may have findings.
+      // Empty dir: tokenUsage = 1 warn-loud finding (no targets resolved); other
+      // file-dependent sections = 0; contrast section may have findings (sample
+      // table is file-independent).
       expect(typeof r.data.findingCount).toBe('number');
-      expect(r.data.bySection.tokenUsage).toBe(0);
+      expect(r.data.bySection.tokenUsage).toBe(1);
       expect(r.data.bySection.designCoverage).toBe(0);
     }
   });

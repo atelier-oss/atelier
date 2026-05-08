@@ -37,7 +37,10 @@ atelier lint DESIGN.md                        # validates token contract
 atelier classify . --format=json              # scores token conformance
 atelier atlas list                            # show known build categories
 atelier audit                                 # six-section project audit
+atelier audit init --preset shadcn            # scaffold atelier.audit.config.ts
 ```
+
+The audit ships with two presets: `shadcn` (generic shadcn-style projects with a flat `components/` directory — recommended starting point) and `prettyfly` (the historical defaults from `benchmarks/audit_home_dashboard.py`, kept available as a parity oracle). Run `atelier audit init --preset <name>` to scaffold a project-specific config; the audit emits a loud non-blocking finding when none of its filesystem targets resolve so a silent run isn't mistaken for a clean codebase.
 
 ## The spec
 

@@ -125,6 +125,7 @@ function motionFindings(
   target: string,
 ): AuditFinding[] {
   const findings: AuditFinding[] = [];
+  if (!target) return findings;
   const filePath = join(root, componentDir, target);
   if (!existsSync(filePath)) return findings;
   const text = readSafe(filePath);
@@ -161,6 +162,7 @@ function contrastFindings(
     }
   }
   // Telemetry follow-up note (Python reference — only fires when telemetry has muted-foreground)
+  if (!ariaTargetTelemetry) return findings;
   const telemetryPath = join(root, componentDir, ariaTargetTelemetry);
   if (existsSync(telemetryPath)) {
     const tt = readSafe(telemetryPath);
@@ -188,8 +190,9 @@ function accessibilityFindings(
   telemetry: string,
 ): AuditFinding[] {
   const findings: AuditFinding[] = [];
-  const spherePath = join(root, componentDir, sphere);
-  if (existsSync(spherePath)) {
+  if (!sphere && !telemetry) return findings;
+  const spherePath = sphere ? join(root, componentDir, sphere) : '';
+  if (sphere && existsSync(spherePath)) {
     const t = readSafe(spherePath);
     if (!t.includes('aria-label={`Open agents')) {
       findings.push({
@@ -198,8 +201,8 @@ function accessibilityFindings(
       });
     }
   }
-  const telemetryPath = join(root, componentDir, telemetry);
-  if (existsSync(telemetryPath)) {
+  const telemetryPath = telemetry ? join(root, componentDir, telemetry) : '';
+  if (telemetry && existsSync(telemetryPath)) {
     const t = readSafe(telemetryPath);
     if (t.includes('Awaiting incoming signal') && !t.includes('aria-live')) {
       findings.push({
@@ -246,6 +249,7 @@ function responsiveFindings(
   target: string,
 ): AuditFinding[] {
   const findings: AuditFinding[] = [];
+  if (!target) return findings;
   const path = join(root, componentDir, target);
   if (!existsSync(path)) return findings;
   const t = readSafe(path);
@@ -296,12 +300,36 @@ export function audit(config: AuditConfig): AuditResult {
     responsive: responsiveFindings(config.root, componentDir, responsiveTarget),
   };
 
+  // Warn-loud: if NONE of the configured filesystem targets resolved, the audit
+  // ran but had nothing to inspect. A silent "0 findings" is misleading on a
+  // foreign codebase — surface a non-blocking info finding so the user knows
+  // they probably need a different preset or `atelier audit init`.
+  if (
+    sections.tokenUsage.length === 0 &&
+    !targetExists(config.root, componentDir) &&
+    !targetExists(config.root, '', motionTarget ? join(componentDir, motionTarget) : '') &&
+    !targetExists(config.root, '', ariaTargetSphere ? join(componentDir, ariaTargetSphere) : '') &&
+    !targetExists(config.root, '', responsiveTarget ? join(componentDir, responsiveTarget) : '')
+  ) {
+    sections.tokenUsage.push({
+      section: 'tokenUsage',
+      message:
+        'no audit targets resolved on disk — run `atelier audit init` to scaffold a project-specific config, or pass `--preset shadcn` / `--preset prettyfly`.',
+    });
+  }
+
   const findingCount = Object.values(sections).reduce((sum, arr) => sum + arr.length, 0);
   return {
     rootPath: config.root,
     sections,
     findingCount,
   };
+}
+
+function targetExists(root: string, ...parts: string[]): boolean {
+  const filtered = parts.filter(Boolean);
+  if (filtered.length === 0) return false;
+  return existsSync(join(root, ...filtered));
 }
 
 export interface BuildPfosPayloadInput {

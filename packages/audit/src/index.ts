@@ -6,6 +6,8 @@
  */
 
 export { audit, buildPfosPayload, contrastRatio } from './audit';
+export { prettyflyDefaults, shadcnDefaults } from './presets';
+export type { AuditPresetConfig } from './presets';
 export type {
   AuditConfig,
   AuditFinding,

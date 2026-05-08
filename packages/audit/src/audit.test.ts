@@ -34,11 +34,13 @@ describe('contrastRatio', () => {
 });
 
 describe('audit', () => {
-  it('skips file-dependent sections when project is empty', () => {
+  it('emits warn-loud finding when no targets resolve and skips other file-dependent sections', () => {
     const root = mkdtempSync(join(tmpdir(), 'atelier-audit-'));
     const r = audit({ root });
-    // File-dependent sections must produce nothing on an empty dir.
-    expect(r.sections.tokenUsage).toEqual([]);
+    // Warn-loud: must surface a "no audit targets" info finding so a silent
+    // audit doesn't get mistaken for a clean codebase.
+    expect(r.sections.tokenUsage).toHaveLength(1);
+    expect(r.sections.tokenUsage[0]?.message).toContain('no audit targets');
     expect(r.sections.motion).toEqual([]);
     expect(r.sections.accessibility).toEqual([]);
     expect(r.sections.designCoverage).toEqual([]);

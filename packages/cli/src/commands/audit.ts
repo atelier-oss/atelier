@@ -1,6 +1,7 @@
 import { defineCommand } from 'citty';
 import { audit, type AuditResult } from '@atelier/audit';
 import type { Format } from './lint';
+import { auditInitCommand } from './audit-init';
 
 export interface RunAuditOptions {
   root: string;
@@ -66,6 +67,9 @@ export const auditCommand = defineCommand({
   meta: {
     name: 'audit',
     description: 'Six-section design audit (token usage, contrast, motion, a11y, design coverage, responsive).',
+  },
+  subCommands: {
+    init: auditInitCommand,
   },
   args: {
     root: {
