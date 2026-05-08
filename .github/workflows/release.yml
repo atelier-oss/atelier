@@ -57,5 +57,9 @@ jobs:
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # setup-node@v4 with registry-url writes `~/.npmrc` referencing
+          # ${NODE_AUTH_TOKEN}; pnpm publish reads .npmrc, not NPM_TOKEN.
+          # Both names are kept so changesets/action sees what it expects too.
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: 'true'
