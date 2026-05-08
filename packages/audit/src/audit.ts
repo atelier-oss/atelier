@@ -304,12 +304,16 @@ export function audit(config: AuditConfig): AuditResult {
   // ran but had nothing to inspect. A silent "0 findings" is misleading on a
   // foreign codebase — surface a non-blocking info finding so the user knows
   // they probably need a different preset or `atelier audit init`.
+  //
+  // The componentDir check requires at least one `.tsx` file inside; a bare
+  // existing-but-empty directory still triggers warn-loud, since the audit
+  // can't inspect anything there.
   if (
     sections.tokenUsage.length === 0 &&
-    !targetExists(config.root, componentDir) &&
-    !targetExists(config.root, '', motionTarget ? join(componentDir, motionTarget) : '') &&
-    !targetExists(config.root, '', ariaTargetSphere ? join(componentDir, ariaTargetSphere) : '') &&
-    !targetExists(config.root, '', responsiveTarget ? join(componentDir, responsiveTarget) : '')
+    !componentDirHasFiles(config.root, componentDir) &&
+    !fileExists(config.root, componentDir, motionTarget) &&
+    !fileExists(config.root, componentDir, ariaTargetSphere) &&
+    !fileExists(config.root, componentDir, responsiveTarget)
   ) {
     sections.tokenUsage.push({
       section: 'tokenUsage',
@@ -326,10 +330,20 @@ export function audit(config: AuditConfig): AuditResult {
   };
 }
 
-function targetExists(root: string, ...parts: string[]): boolean {
-  const filtered = parts.filter(Boolean);
-  if (filtered.length === 0) return false;
-  return existsSync(join(root, ...filtered));
+function fileExists(root: string, dir: string, target: string): boolean {
+  if (!target) return false;
+  return existsSync(join(root, dir, target));
+}
+
+function componentDirHasFiles(root: string, dir: string): boolean {
+  const path = join(root, dir);
+  if (!existsSync(path)) return false;
+  try {
+    const entries = readdirSync(path, { withFileTypes: true });
+    return entries.some((e) => e.isFile() && e.name.endsWith('.tsx'));
+  } catch {
+    return false;
+  }
 }
 
 export interface BuildPfosPayloadInput {

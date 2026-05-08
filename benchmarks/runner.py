@@ -216,8 +216,10 @@ def render_markdown(date: str, results: dict, summary: dict, gates: dict) -> str
     lines.append("")
     p = gates["primary"]
     s = gates["secondary"]
-    p_val = f"{p['value']:+.1%}" if p["value"] is not None else "n/a"
-    s_val = f"{s['value']:+.1%}" if s["value"] is not None else "n/a"
+    # Use 2 decimal places so a sub-threshold value like +14.95pp doesn't round
+    # to "+15.0%" and contradict the FAIL verdict. The boolean is the truth.
+    p_val = f"{p['value'] * 100:+.2f}pp" if p["value"] is not None else "n/a"
+    s_val = f"{s['value']:+.2%}" if s["value"] is not None else "n/a"
     lines.append(f"- **Primary (blocking)**: {p['comparison']} = **{p_val}** "
                  f"(threshold ≥ +{p['threshold']:.0%}) — {'PASS' if p['pass'] else 'FAIL'}")
     lines.append(f"- Secondary (informational): {s['comparison']} = **{s_val}** "

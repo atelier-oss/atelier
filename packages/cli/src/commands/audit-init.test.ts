@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { mkdtempSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { runAuditInit } from './audit-init';
+import { runAuditInit, auditInitCommand } from './audit-init';
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'atelier-audit-init-'));
@@ -56,5 +56,54 @@ describe('runAuditInit', () => {
     expect(() =>
       runAuditInit({ cwd, preset: 'nonsense' as 'shadcn' }),
     ).toThrow(/unknown preset/i);
+  });
+});
+
+// Citty-wiring smoke: confirms args.preset / args.force pass through correctly
+// and that an unknown preset reaches the CLI guard before runAuditInit throws.
+describe('auditInitCommand (citty wiring)', () => {
+  const exit = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  const cwdSpy = vi.spyOn(process, 'cwd');
+
+  afterEach(() => {
+    exit.mockClear();
+    err.mockClear();
+    log.mockClear();
+    cwdSpy.mockReset();
+  });
+
+  it('writes the file end-to-end through the citty handler', async () => {
+    const cwd = tmp();
+    cwdSpy.mockReturnValue(cwd);
+    // citty's `run` accepts a context object; we shape the minimum it reads.
+    await (auditInitCommand as unknown as {
+      run: (ctx: { args: { preset: string; force: boolean } }) => Promise<void> | void;
+    }).run({ args: { preset: 'shadcn', force: false } });
+    expect(existsSync(join(cwd, 'atelier.audit.config.ts'))).toBe(true);
+    expect(exit).not.toHaveBeenCalled();
+  });
+
+  it('exits with code 2 on unknown preset (CLI guard fires before runAuditInit)', async () => {
+    const cwd = tmp();
+    cwdSpy.mockReturnValue(cwd);
+    await (auditInitCommand as unknown as {
+      run: (ctx: { args: { preset: string; force: boolean } }) => Promise<void> | void;
+    }).run({ args: { preset: 'nonsense', force: false } });
+    expect(exit).toHaveBeenCalledWith(2);
+    expect(err).toHaveBeenCalledWith(
+      expect.stringMatching(/unknown preset/i),
+    );
+  });
+
+  it('exits with code 1 when target already exists and --force is false', async () => {
+    const cwd = tmp();
+    cwdSpy.mockReturnValue(cwd);
+    runAuditInit({ cwd, preset: 'shadcn' });
+    await (auditInitCommand as unknown as {
+      run: (ctx: { args: { preset: string; force: boolean } }) => Promise<void> | void;
+    }).run({ args: { preset: 'shadcn', force: false } });
+    expect(exit).toHaveBeenCalledWith(1);
   });
 });

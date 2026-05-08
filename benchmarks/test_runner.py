@@ -8,12 +8,14 @@ import pytest
 
 from benchmarks.runner import (
     CORPUS,
+    MIN_SIGNAL,
     PRIMARY_GATE_ABS,
     SECONDARY_GATE_REL,
     ArmAggregate,
     RepoResult,
     aggregate,
     evaluate_gates,
+    score_repo,
 )
 
 
@@ -48,7 +50,13 @@ def test_corpus_paths_exist_on_disk() -> None:
 
     A missing path doesn't auto-fail the gate — the dropouts policy handles it —
     but the spec is wrong if a path that was supposed to be there is gone.
+
+    SKIPPED in CI: corpus paths are absolute and machine-local (Alex's mac).
+    On a fresh runner none of them exist; the structural tests below still run.
     """
+    sample_path = next(iter(CORPUS["with_design_md"]))
+    if not Path(sample_path).exists():
+        pytest.skip("corpus paths not present on this machine (CI / fresh checkout)")
     missing: list[str] = []
     for arm, repos in CORPUS.items():
         for p in repos:
@@ -83,6 +91,37 @@ def test_evaluate_gates_primary_fail_when_shadcn_close() -> None:
     assert gates["secondary"]["pass"] is True  # secondary still passes
 
 
+def test_evaluate_gates_primary_pass_at_exact_threshold() -> None:
+    """The gate semantics is `>=`. A delta of exactly +0.15 must pass.
+
+    Uses integer token counts that produce the exact float ratios so the
+    boundary is clean (no float-precision wobble).
+    """
+    arms = {
+        # 75 / 100 = 0.75 exactly
+        "with_design_md": ArmAggregate(4, 4, 75, 25, 0.75, []),
+        # 60 / 100 = 0.60 exactly
+        "shadcn_default": ArmAggregate(10, 10, 60, 40, 0.60, []),
+        "raw_palette": ArmAggregate(10, 10, 20, 80, 0.20, []),
+    }
+    gates = evaluate_gates(arms)
+    assert gates["primary"]["value"] == pytest.approx(0.15, abs=1e-12)
+    assert gates["primary"]["pass"] is True
+
+
+def test_evaluate_gates_primary_fail_just_below_threshold() -> None:
+    """A delta a hair below +0.15 must FAIL — the actual 2026-05-07 outcome."""
+    arms = {
+        # ~80.0% but not exactly — picks numbers that produce ~14.95pp delta
+        "with_design_md": ArmAggregate(3, 3, 4101, 1027, 4101 / 5128, []),
+        "shadcn_default": ArmAggregate(10, 10, 18642, 10028, 18642 / 28670, []),
+        "raw_palette": ArmAggregate(9, 9, 2731, 1768, 2731 / 4499, []),
+    }
+    gates = evaluate_gates(arms)
+    assert 0.149 <= gates["primary"]["value"] < 0.15
+    assert gates["primary"]["pass"] is False
+
+
 def test_evaluate_gates_handles_none_conformance() -> None:
     arms = {
         "with_design_md": ArmAggregate(0, 0, 0, 0, None, []),
@@ -92,6 +131,27 @@ def test_evaluate_gates_handles_none_conformance() -> None:
     gates = evaluate_gates(arms)
     assert gates["primary"]["value"] is None
     assert gates["primary"]["pass"] is False
+
+
+def test_score_repo_drops_on_insufficient_signal(tmp_path) -> None:
+    """A .tsx file with no color signal at all must trip the insufficient_signal dropout."""
+    f = tmp_path / "Empty.tsx"
+    f.write_text("export const x = 1;\n")
+    r = score_repo(tmp_path)
+    assert r.dropped is True
+    assert r.drop_reason == "insufficient_signal"
+    assert r.tokens + r.raw < MIN_SIGNAL
+
+
+def test_score_repo_keeps_repo_with_signal(tmp_path) -> None:
+    """A .tsx file with > MIN_SIGNAL color refs must NOT be dropped."""
+    f = tmp_path / "Full.tsx"
+    # 12 raw palette refs, easily clears MIN_SIGNAL=10
+    classes = " ".join(["bg-zinc-900"] * 12)
+    f.write_text(f'export const x = () => <div className="{classes}" />;\n')
+    r = score_repo(tmp_path)
+    assert r.dropped is False
+    assert r.drop_reason is None
 
 
 def test_aggregate_drops_marked_repos() -> None:
