@@ -1,0 +1,6 @@
+{
+  "id": "02-saas-hero",
+  "brief": "saas dashboard hero with a KPI strip — 4 metrics (active users, MRR, churn rate, NPS) shown as large display numbers with a small label below each. Single primary CTA underneath the strip says 'Open dashboard'. Subtle muted-foreground caption above the strip.",
+  "category": "saas-dashboard",
+  "minConformance": 0.5
+}
