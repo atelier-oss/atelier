@@ -48,18 +48,15 @@ jobs:
       - name: Test
         run: pnpm -r test
 
-      - name: Create release PR or publish
-        uses: changesets/action@v1
-        with:
-          publish: pnpm changeset:publish
-          version: pnpm changeset:version
-          commit: 'chore: version packages'
-          title: 'chore: version packages'
+      - name: Publish to npm
+        # Direct pnpm publish -r — bypasses changesets/action which no-ops
+        # when changesets are already consumed locally. --no-git-checks lets
+        # the workflow publish from a clean main without the changeset gate.
+        # --provenance signs each tarball via OIDC (id-token: write).
+        run: pnpm -r publish --access public --no-git-checks --provenance
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # setup-node@v4 with registry-url writes `~/.npmrc` referencing
-          # ${NODE_AUTH_TOKEN}; pnpm publish reads .npmrc, not NPM_TOKEN.
-          # Both names are kept so changesets/action sees what it expects too.
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # setup-node@v4 with registry-url writes ~/.npmrc referencing
+          # ${NODE_AUTH_TOKEN} for the registry auth.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: 'true'
