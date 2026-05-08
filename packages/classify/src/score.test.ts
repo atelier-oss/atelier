@@ -39,8 +39,9 @@ function expectedToVerdict(s: string): Verdict | null {
 describe('classify-parity.yaml fixture', () => {
   const cases = parse(readFileSync(FIXTURE_PATH, 'utf-8')) as ParityCase[];
 
-  it('loads exactly 60 cases', () => {
-    expect(cases.length).toBe(60);
+  it('loads exactly 65 cases', () => {
+    // 60 original + 5 directional/gradient utilities added 2026-05-07
+    expect(cases.length).toBe(65);
   });
 
   for (const [idx, c] of cases.entries()) {

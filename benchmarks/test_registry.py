@@ -87,6 +87,65 @@ def test_tailwind_config_tokens_skip_palette_names(tmp_path: Path) -> None:
     assert "custom" in tokens
 
 
+def test_tailwind_config_nested_colors_emit_composed_names(tmp_path: Path) -> None:
+    """The advisory-board case: `colors.surface.{DEFAULT,card,elevated,border}`
+    must emit `surface`, `surface-card`, `surface-elevated`, `surface-border`."""
+    (tmp_path / "tailwind.config.ts").write_text(
+        'import type { Config } from "tailwindcss";\n'
+        'const config: Config = {\n'
+        '  theme: {\n'
+        '    extend: {\n'
+        '      colors: {\n'
+        '        surface: {\n'
+        '          DEFAULT: "rgb(var(--background))",\n'
+        '          card: "rgb(var(--surface-card))",\n'
+        '          elevated: "rgb(var(--surface-elevated))",\n'
+        '          border: "rgb(var(--border))",\n'
+        '        },\n'
+        '        primary: {\n'
+        '          DEFAULT: "rgb(var(--primary))",\n'
+        '          hover: "rgb(var(--primary-hover))",\n'
+        '        },\n'
+        '      },\n'
+        '    },\n'
+        '  },\n'
+        '};\n'
+        'export default config;\n'
+    )
+    tokens = extract_tailwind_config_tokens(tmp_path)
+    # Top-level (DEFAULT-bearing) names
+    assert "surface" in tokens
+    assert "primary" in tokens
+    # Composed sub-names that Tailwind generates
+    assert "surface-card" in tokens
+    assert "surface-elevated" in tokens
+    assert "surface-border" in tokens
+    assert "primary-hover" in tokens
+    # The literal `DEFAULT` key must NOT leak out
+    assert "DEFAULT" not in tokens
+    assert "surface-DEFAULT" not in tokens
+
+
+def test_tailwind_config_deeply_nested_colors(tmp_path: Path) -> None:
+    """Two-level nesting: `colors.domain.market.{DEFAULT,muted}` →
+    `domain-market`, `domain-market-muted`."""
+    (tmp_path / "tailwind.config.js").write_text(
+        'module.exports = {\n'
+        '  theme: { extend: { colors: {\n'
+        '    domain: {\n'
+        '      market: { DEFAULT: "#3b82f6", muted: "#3b82f620" },\n'
+        '      tech: { DEFAULT: "#8b5cf6" },\n'
+        '    },\n'
+        '  } } }\n'
+        '};\n'
+    )
+    tokens = extract_tailwind_config_tokens(tmp_path)
+    assert "domain" not in tokens  # `domain` itself has no DEFAULT leaf
+    assert "domain-market" in tokens
+    assert "domain-market-muted" in tokens
+    assert "domain-tech" in tokens
+
+
 def test_tailwind_config_skips_node_modules(tmp_path: Path) -> None:
     nm = tmp_path / "node_modules" / "some-pkg"
     nm.mkdir(parents=True)

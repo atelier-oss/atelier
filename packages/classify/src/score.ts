@@ -109,6 +109,18 @@ export const NON_COLOR_VALUES: ReadonlySet<string> = new Set([
   'inset',
   'inside',
   'outside',
+  // Directional border / divide / ring side utilities — alter which side gets
+  // the border, not which color. Never tokens.
+  't',
+  'b',
+  'l',
+  'r',
+  'x',
+  'y',
+  'collapse',
+  'separate',
+  // `bg-gradient-to-{br,t,r,bl,...}` family — gradient direction, not a color.
+  'gradient',
 ]);
 
 const HEX_RE = /#[0-9a-fA-F]{3,8}\b/;

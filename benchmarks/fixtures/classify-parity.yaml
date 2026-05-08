@@ -212,3 +212,20 @@
 - input: ""
   expected: none
   rationale: "empty string"
+
+# --- Directional border / divide / gradient utilities → none (5) ---
+- input: "border-t"
+  expected: none
+  rationale: "directional border-side utility, not a color"
+- input: "border-b-2"
+  expected: none
+  rationale: "directional border-side utility with width — not a color"
+- input: "divide-y"
+  expected: none
+  rationale: "divide spacing utility, not a color"
+- input: "border-collapse"
+  expected: none
+  rationale: "border-collapse style, not a color"
+- input: "bg-gradient-to-br"
+  expected: none
+  rationale: "gradient direction utility — palette refs in the gradient are caught as from-zinc-900"

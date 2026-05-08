@@ -56,6 +56,12 @@ NON_COLOR_VALUES = frozenset({
     "tighter", "tight", "wide", "wider", "widest",
     "solid", "dashed", "dotted", "double", "hidden",
     "auto", "visible", "inset", "inside", "outside",
+    # Directional border / divide / ring side utilities — these alter
+    # which side gets the border, not which color. Never tokens.
+    "t", "b", "l", "r", "x", "y",
+    "collapse", "separate",
+    # `bg-gradient-to-{br,t,r,bl,...}` family — gradient direction, not a color.
+    "gradient",
 })
 
 _HEX_RE = re.compile(r"#[0-9a-fA-F]{3,8}\b")

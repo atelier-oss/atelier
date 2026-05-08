@@ -39,17 +39,10 @@ EXCLUDE_DIRS = frozenset({"node_modules", ".next", "dist", "build", ".turbo", ".
 
 _FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---", re.DOTALL)
 
-# Match `colors:` blocks in tailwind.config files. Tolerant of the common
-# shapes we see in real configs:
-#   theme: { extend: { colors: { ... } } }
-#   theme: { colors: { ... } }
-#   colors: { ... }
-# The `\{[^{}]*?(?:\{[^{}]*?\}[^{}]*?)*?\}` pattern handles one level of
-# nesting (e.g. `card: { DEFAULT: "..." }`).
-_TW_COLORS_BLOCK_RE = re.compile(
-    r"colors\s*:\s*(\{[^{}]*?(?:\{[^{}]*?\}[^{}]*?)*?\})",
-    re.DOTALL,
-)
+# Locator for the `colors` keyword in tailwind.config files. Used as a seed
+# point; the actual block extraction is brace-balanced via _balanced_block,
+# which handles arbitrary nesting depth (a regex can't reliably do this).
+_TW_COLORS_KEY_RE = re.compile(r"\bcolors\s*:\s*\{")
 # Identifier-or-quoted-key followed by `:` — we only emit matches at brace
 # depth 1 (top level inside the colors block) via _top_level_keys, so this
 # regex doesn't need a line anchor.
@@ -58,22 +51,21 @@ _TW_KEY_RE = re.compile(
 )
 
 
-def _top_level_keys(block: str) -> list[str]:
-    """Return keys declared at brace depth 1 inside a `{ ... }` block.
+def _balanced_block(text: str, start: int) -> tuple[int, int] | None:
+    """Find the balanced `{...}` starting at index `start` (which must be `{`).
 
-    The block is assumed to start with `{` and end with `}`. The parser
-    tracks brace depth and inside-string state so a nested object like
-    `card: { DEFAULT: "..." }` contributes only `card`, not `DEFAULT`.
+    Returns (start, end_exclusive) where text[start:end_exclusive] is the
+    full block including outer braces. Returns None if unbalanced.
+    Tracks string literals so braces inside strings are ignored.
     """
-    if not block.startswith("{") or not block.endswith("}"):
-        return []
-    keys: list[str] = []
+    if start >= len(text) or text[start] != "{":
+        return None
     depth = 0
-    i = 0
-    in_string: str | None = None  # "'" / '"' / "`" when inside a string literal
-    n = len(block)
+    in_string: str | None = None
+    i = start
+    n = len(text)
     while i < n:
-        ch = block[i]
+        ch = text[i]
         if in_string is not None:
             if ch == "\\" and i + 1 < n:
                 i += 2
@@ -82,14 +74,99 @@ def _top_level_keys(block: str) -> list[str]:
                 in_string = None
             i += 1
             continue
-        # At depth 1, prefer matching a key BEFORE treating a leading quote
-        # as the start of a value-string — keys can themselves be quoted.
-        if depth == 1:
-            m = _TW_KEY_RE.match(block, i)
-            if m:
-                keys.append(m.group(1))
-                i = m.end()
+        if ch in ("'", '"', "`"):
+            in_string = ch
+            i += 1
+            continue
+        if ch == "{":
+            depth += 1
+            i += 1
+            continue
+        if ch == "}":
+            depth -= 1
+            i += 1
+            if depth == 0:
+                return (start, i)
+            continue
+        i += 1
+    return None
+
+
+def _walk_colors_block(block: str, prefix: str = "") -> list[str]:
+    """Recursively walk a tailwind colors block and emit Tailwind-class names.
+
+    For a block like `{ surface: { DEFAULT: "...", card: "...", border: "..." } }`,
+    Tailwind generates classes for `surface` (from DEFAULT), `surface-card`, and
+    `surface-border`. This function emits exactly those composed names.
+
+    Rules:
+    - A leaf key with a string/template value contributes prefix-key (or just
+      key if prefix is empty).
+    - A nested object with a `DEFAULT` key contributes prefix-key (the parent),
+      AND recurses into the nested object with `prefix=prefix-key`.
+    - A nested object without DEFAULT just recurses with the new prefix.
+    - The literal name `DEFAULT` never appears in emitted names — Tailwind
+      treats it as the unsuffixed name of the parent.
+    """
+    if not block.startswith("{") or not block.endswith("}"):
+        return []
+    names: list[str] = []
+    inner = block[1:-1]
+    depth = 0
+    in_string: str | None = None
+    i = 0
+    n = len(inner)
+    while i < n:
+        ch = inner[i]
+        if in_string is not None:
+            if ch == "\\" and i + 1 < n:
+                i += 2
                 continue
+            if ch == in_string:
+                in_string = None
+            i += 1
+            continue
+        if depth == 0:
+            m = _TW_KEY_RE.match(inner, i)
+            if m:
+                key = m.group(1)
+                # Skip past the key + colon to find the value start.
+                j = m.end()
+                # Skip whitespace
+                while j < n and inner[j] in " \t\n\r":
+                    j += 1
+                if j >= n:
+                    break
+                if inner[j] == "{":
+                    # Nested object — find balanced block, recurse.
+                    block_span = _balanced_block(inner, j)
+                    if block_span is None:
+                        i = j + 1
+                        continue
+                    sub_block = inner[block_span[0] : block_span[1]]
+                    composed = f"{prefix}-{key}" if prefix else key
+                    # If the nested object has DEFAULT as a leaf, the composed
+                    # name itself is also a Tailwind class (the parent name
+                    # without suffix).
+                    if _has_default_leaf(sub_block):
+                        names.append(composed)
+                    # Recurse for sub-keys (DEFAULT is filtered inside the recurse).
+                    for child in _walk_colors_block(sub_block, prefix=composed):
+                        if child.endswith("-DEFAULT"):
+                            continue
+                        if child == "DEFAULT":
+                            continue
+                        names.append(child)
+                    i = block_span[1]
+                    continue
+                else:
+                    # Leaf value (string/template/expression). Walk to next
+                    # comma at depth 0.
+                    composed = f"{prefix}-{key}" if prefix else key
+                    if key != "DEFAULT":
+                        names.append(composed)
+                    i = j
+                    continue
         if ch in ("'", '"', "`"):
             in_string = ch
             i += 1
@@ -103,7 +180,52 @@ def _top_level_keys(block: str) -> list[str]:
             i += 1
             continue
         i += 1
-    return keys
+    return names
+
+
+def _has_default_leaf(block: str) -> bool:
+    """Quick check: does the immediate body of `block` contain a `DEFAULT:` key
+    at the top level (not nested deeper)?"""
+    if not block.startswith("{") or not block.endswith("}"):
+        return False
+    inner = block[1:-1]
+    depth = 0
+    in_string: str | None = None
+    i = 0
+    n = len(inner)
+    while i < n:
+        ch = inner[i]
+        if in_string is not None:
+            if ch == "\\" and i + 1 < n:
+                i += 2
+                continue
+            if ch == in_string:
+                in_string = None
+            i += 1
+            continue
+        if ch in ("'", '"', "`"):
+            in_string = ch
+            i += 1
+            continue
+        if ch == "{":
+            depth += 1
+            i += 1
+            continue
+        if ch == "}":
+            depth -= 1
+            i += 1
+            continue
+        if depth == 0 and inner[i:i + 7] == "DEFAULT" and (
+            i + 7 >= n or not (inner[i + 7].isalnum() or inner[i + 7] == "_")
+        ):
+            # Look ahead for `:` after possible whitespace
+            j = i + 7
+            while j < n and inner[j] in " \t\n\r":
+                j += 1
+            if j < n and inner[j] == ":":
+                return True
+        i += 1
+    return False
 
 # CSS custom property declarations — covers `:root { --x: ... }` and
 # Tailwind v4 `@theme { --color-x: ... }` blocks. Captures the part after
@@ -156,7 +278,9 @@ def extract_design_md_tokens(repo: Path) -> set[str]:
 
 
 def extract_tailwind_config_tokens(repo: Path) -> set[str]:
-    """Top-level color keys from tailwind.config.{js,ts,cjs,mjs}.
+    """Color names from tailwind.config.{js,ts,cjs,mjs} — including composed
+    names from nested objects (Tailwind generates `bg-surface-card` from
+    `colors.surface.card`).
 
     Excludes Tailwind's built-in palette names so an `extend.colors.zinc`
     section (a palette extension, not a custom token) doesn't leak in.
@@ -169,11 +293,20 @@ def extract_tailwind_config_tokens(repo: Path) -> set[str]:
             if _excluded(cfg):
                 continue
             text = _safe_read(cfg)
-            for body_m in _TW_COLORS_BLOCK_RE.finditer(text):
-                body = body_m.group(1)
-                for key in _top_level_keys(body):
-                    if key not in TAILWIND_PALETTE_NAMES:
-                        tokens.add(key)
+            for key_m in _TW_COLORS_KEY_RE.finditer(text):
+                # `_TW_COLORS_KEY_RE` matches up to the opening `{` — find it.
+                brace_idx = text.index("{", key_m.start())
+                block_span = _balanced_block(text, brace_idx)
+                if block_span is None:
+                    continue
+                block = text[block_span[0] : block_span[1]]
+                for name in _walk_colors_block(block):
+                    # Drop palette-name top-level keys (e.g. extending zinc).
+                    # Composed names like `surface-card` are kept — they
+                    # don't start with a palette name.
+                    if name in TAILWIND_PALETTE_NAMES:
+                        continue
+                    tokens.add(name)
     return tokens
 
 
