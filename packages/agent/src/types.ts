@@ -17,13 +17,27 @@ export interface CodeFile {
 
 /** One entry in the run trace — ordered by execution. */
 export interface RunTraceEntry {
-  phase: 'intake' | 'generate' | 'verify' | 'deliver';
+  phase: 'intake' | 'generate' | 'verify' | 'iterate' | 'deliver';
   /** ISO-8601 timestamp at phase start. */
   startedAt: string;
   /** Wall-clock duration of the phase in ms. */
   durationMs: number;
   /** Phase-specific notes — model used, score, etc. Stable enough to log. */
   notes?: Record<string, unknown>;
+}
+
+/** Per-iteration record from the rewrite loop. */
+export interface IterationRecord {
+  /** 0-indexed iteration number; 0 = initial generate, ≥1 = rewrite passes. */
+  n: number;
+  /** Conformance score after this iteration; null when no signal. */
+  conformance: number | null;
+  /** Raw palette refs counted; informs whether to keep iterating. */
+  raw: number;
+  /** Tokens counted. */
+  tokens: number;
+  /** Wall-clock for this iteration's API + classify pass. */
+  durationMs: number;
 }
 
 /** Token + USD cost roll-up for a single Agent.run(). */
@@ -42,6 +56,8 @@ export interface RunResult {
   };
   trace: RunTraceEntry[];
   cost: RunCost;
+  /** Iteration history — empty when iterate=0 (Phase 0 mode). */
+  iterations: IterationRecord[];
 }
 
 /** Per-run model overrides. Phase 0 only uses `codegen`. */
@@ -58,4 +74,14 @@ export interface AgentOptions {
   models?: ModelOpts;
   /** max_tokens for codegen calls. Default 16384. */
   maxOutputTokens?: number;
+  /**
+   * Max number of rewrite iterations after the initial generate.
+   * 0 disables the loop (Phase 0 behavior). Default: 3.
+   */
+  iterate?: number;
+  /**
+   * Conformance threshold (0..1). Iteration stops when classify
+   * conformance ≥ threshold. Default: 0.95.
+   */
+  threshold?: number;
 }

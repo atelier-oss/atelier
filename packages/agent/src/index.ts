@@ -18,9 +18,11 @@ import {
 import { deliver } from './pipeline/deliver';
 import { generate } from './pipeline/generate';
 import { intake } from './pipeline/intake';
+import { iterate } from './pipeline/iterate';
 import { verify } from './pipeline/verify';
 import type {
   AgentOptions,
+  IterationRecord,
   RunInput,
   RunResult,
   RunTraceEntry,
@@ -29,6 +31,7 @@ import type {
 export type {
   AgentOptions,
   CodeFile,
+  IterationRecord,
   ModelOpts,
   RunCost,
   RunInput,
@@ -38,12 +41,17 @@ export type {
 
 export { DEFAULT_CODEGEN_MODEL, DEFAULT_MAX_OUTPUT_TOKENS } from './models/defaults';
 
-export const VERSION = '0.0.1' as const;
+export const VERSION = '0.1.0' as const;
+
+export const DEFAULT_ITERATE_MAX = 3 as const;
+export const DEFAULT_THRESHOLD = 0.95 as const;
 
 export class Agent {
   private readonly client: Anthropic;
   private readonly codegenModel: string;
   private readonly maxOutputTokens: number;
+  private readonly maxIterations: number;
+  private readonly threshold: number;
 
   constructor(options: AgentOptions = {}) {
     const apiKey = options.apiKey ?? process.env.ANTHROPIC_API_KEY;
@@ -55,6 +63,8 @@ export class Agent {
     this.client = new Anthropic({ apiKey });
     this.codegenModel = options.models?.codegen ?? DEFAULT_CODEGEN_MODEL;
     this.maxOutputTokens = options.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS;
+    this.maxIterations = options.iterate ?? DEFAULT_ITERATE_MAX;
+    this.threshold = options.threshold ?? DEFAULT_THRESHOLD;
   }
 
   async run(input: RunInput): Promise<RunResult> {
@@ -103,14 +113,41 @@ export class Agent {
       },
     });
 
+    const iterateStart = Date.now();
+    const iterateAt = new Date(iterateStart).toISOString();
+    const iterated = await iterate({
+      brief: normalized.brief,
+      initialCode: generated.code,
+      initialScore: verified.classify,
+      client: this.client,
+      model: this.codegenModel,
+      maxOutputTokens: this.maxOutputTokens,
+      maxIterations: this.maxIterations,
+      threshold: this.threshold,
+    });
+    trace.push({
+      phase: 'iterate',
+      startedAt: iterateAt,
+      durationMs: Date.now() - iterateStart,
+      notes: {
+        iterations: iterated.iterations.length - 1, // excludes initial
+        finalConformance: iterated.classify.conformance,
+        rewrite_input_tokens: iterated.rewriteUsage.input_tokens,
+        rewrite_output_tokens: iterated.rewriteUsage.output_tokens,
+        scoreAt: iterated.iterations.map((r: IterationRecord) => r.conformance),
+      },
+    });
+
     const deliverStart = Date.now();
     const deliverAt = new Date(deliverStart).toISOString();
+    const totalInput = generated.usage.input_tokens + iterated.rewriteUsage.input_tokens;
+    const totalOutput = generated.usage.output_tokens + iterated.rewriteUsage.output_tokens;
     const partial = deliver({
-      code: generated.code,
-      classify: verified.classify,
+      code: iterated.code,
+      classify: iterated.classify,
       model: generated.model,
-      inputTokens: generated.usage.input_tokens,
-      outputTokens: generated.usage.output_tokens,
+      inputTokens: totalInput,
+      outputTokens: totalOutput,
     });
     trace.push({
       phase: 'deliver',
@@ -118,6 +155,6 @@ export class Agent {
       durationMs: Date.now() - deliverStart,
     });
 
-    return { ...partial, trace };
+    return { ...partial, trace, iterations: iterated.iterations };
   }
 }
