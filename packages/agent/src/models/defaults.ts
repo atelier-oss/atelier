@@ -26,6 +26,11 @@ export const PRICING_USD_PER_MTOK: Record<string, { input: number; output: numbe
 
 export function estimateUsd(model: string, inputTokens: number, outputTokens: number): number {
   const p = PRICING_USD_PER_MTOK[model];
-  if (!p) return 0;
+  if (!p) {
+    process.stderr.write(
+      `[atelier-agent] warning: no pricing snapshot for model "${model}"; cost will be reported as $0. Add it to PRICING_USD_PER_MTOK in packages/agent/src/models/defaults.ts.\n`,
+    );
+    return 0;
+  }
   return (inputTokens / 1_000_000) * p.input + (outputTokens / 1_000_000) * p.output;
 }

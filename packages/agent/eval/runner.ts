@@ -68,6 +68,8 @@ async function runOne(agent: Agent, fixture: Fixture): Promise<FixtureRun> {
       passed: conformance !== null && conformance >= fixture.minConformance,
     };
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`[${fixture.id}] error: ${message}\n`);
     return {
       id: fixture.id,
       brief: fixture.brief.slice(0, 60) + (fixture.brief.length > 60 ? '...' : ''),

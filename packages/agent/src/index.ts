@@ -38,6 +38,8 @@ export type {
 
 export { DEFAULT_CODEGEN_MODEL, DEFAULT_MAX_OUTPUT_TOKENS } from './models/defaults';
 
+export const VERSION = '0.0.1' as const;
+
 export class Agent {
   private readonly client: Anthropic;
   private readonly codegenModel: string;
@@ -103,10 +105,9 @@ export class Agent {
 
     const deliverStart = Date.now();
     const deliverAt = new Date(deliverStart).toISOString();
-    const result = deliver({
+    const partial = deliver({
       code: generated.code,
       classify: verified.classify,
-      trace,
       model: generated.model,
       inputTokens: generated.usage.input_tokens,
       outputTokens: generated.usage.output_tokens,
@@ -117,6 +118,6 @@ export class Agent {
       durationMs: Date.now() - deliverStart,
     });
 
-    return result;
+    return { ...partial, trace };
   }
 }

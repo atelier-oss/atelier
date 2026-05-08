@@ -1,24 +1,30 @@
 /**
- * Deliver phase — assemble the RunResult.
+ * Deliver phase — assemble the result without trace. The orchestrator
+ * (index.ts) owns the trace and attaches it after this function returns,
+ * so deliver doesn't depend on a shared mutable trace reference.
  *
- * Phase 0 just collates intermediate phase outputs. Phase 1+ adds
- * persistence to <project>/.atelier-agent/runs/{ts}/ with diffs.
+ * Phase 1+ adds persistence to <project>/.atelier-agent/runs/{ts}/ with diffs.
  */
 
 import { estimateUsd } from '../models/defaults';
-import type { CodeFile, RunCost, RunResult, RunTraceEntry } from '../types';
+import type { CodeFile, RunCost } from '../types';
 import type { ScoreResult } from '@atelier-oss/classify';
 
 export interface DeliverInput {
   code: CodeFile[];
   classify: ScoreResult;
-  trace: RunTraceEntry[];
   model: string;
   inputTokens: number;
   outputTokens: number;
 }
 
-export function deliver(input: DeliverInput): RunResult {
+export interface DeliverOutput {
+  code: CodeFile[];
+  scores: { classify: ScoreResult };
+  cost: RunCost;
+}
+
+export function deliver(input: DeliverInput): DeliverOutput {
   const cost: RunCost = {
     input_tokens: input.inputTokens,
     output_tokens: input.outputTokens,
@@ -27,7 +33,6 @@ export function deliver(input: DeliverInput): RunResult {
   return {
     code: input.code,
     scores: { classify: input.classify },
-    trace: input.trace,
     cost,
   };
 }

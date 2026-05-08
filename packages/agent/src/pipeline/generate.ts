@@ -32,7 +32,9 @@ export interface GenerateOutput {
   model: string;
 }
 
-const TSX_BLOCK_RE = /```tsx\s*\n([\s\S]*?)\n```/;
+// Tolerant of compact closing fences — Sonnet 4.6 routinely emits the closing
+// ``` without a preceding newline when the system prompt forbids surrounding prose.
+const TSX_BLOCK_RE = /```tsx\s*\n([\s\S]*?)\n?```/;
 const COMPONENT_NAME_RE = /export\s+default\s+function\s+([A-Za-z_$][A-Za-z0-9_$]*)/;
 
 function extractCode(rawText: string): { content: string; path: string } {
@@ -42,7 +44,7 @@ function extractCode(rawText: string): { content: string; path: string } {
       'Agent.generate: no tsx code block found in model response. The model violated the output contract.',
     );
   }
-  const content = match[1];
+  const content = match[1].trim();
   const nameMatch = COMPONENT_NAME_RE.exec(content);
   const componentName = nameMatch?.[1] ?? 'Component';
   return { content, path: `${componentName}.tsx` };
