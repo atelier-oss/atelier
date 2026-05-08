@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { audit, type AuditResult } from "@atelier/audit";
+import { audit, type AuditResult } from "@atelier-oss/audit";
 import type { Format } from "./lint";
 
 export interface RunAuditOptions {

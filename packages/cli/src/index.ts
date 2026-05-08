@@ -1,8 +1,8 @@
 /**
- * @atelier/cli — programmatic surface.
+ * @atelier-oss/cli — programmatic surface.
  *
  * The bin entry lives in `cli.ts`. This module re-exports each command's
- * runner so other packages (e.g. @atelier/mcp-server) can call them
+ * runner so other packages (e.g. @atelier-oss/mcp-server) can call them
  * without spawning a subprocess.
  */
 

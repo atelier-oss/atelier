@@ -1,5 +1,5 @@
 import { defineCommand } from 'citty';
-import { fingerprint, loadCategories, type BuildCategory } from '@atelier/atlas';
+import { fingerprint, loadCategories, type BuildCategory } from '@atelier-oss/atlas';
 import type { Format } from './lint';
 
 export interface RunAtlasListResult {
@@ -7,7 +7,7 @@ export interface RunAtlasListResult {
   output: string;
 }
 
-/** Single source of truth: read from @atelier/atlas (which reads categories.json). */
+/** Single source of truth: read from @atelier-oss/atlas (which reads categories.json). */
 function getBuildCategories(): readonly BuildCategory[] {
   return loadCategories().categories.map((c) => c.slug);
 }

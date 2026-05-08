@@ -16,7 +16,7 @@ describe('runAuditInit', () => {
     expect(result.written).toBe(join(cwd, 'atelier.audit.config.ts'));
     expect(existsSync(result.written)).toBe(true);
     const text = readFileSync(result.written, 'utf-8');
-    expect(text).toContain("import { shadcnDefaults } from '@atelier/audit'");
+    expect(text).toContain("import { shadcnDefaults } from '@atelier-oss/audit'");
     expect(text).toContain('shadcnDefaults()');
   });
 
@@ -24,7 +24,7 @@ describe('runAuditInit', () => {
     const cwd = tmp();
     const result = runAuditInit({ cwd, preset: 'prettyfly' });
     const text = readFileSync(result.written, 'utf-8');
-    expect(text).toContain("import { prettyflyDefaults } from '@atelier/audit'");
+    expect(text).toContain("import { prettyflyDefaults } from '@atelier-oss/audit'");
     expect(text).toContain('prettyflyDefaults()');
   });
 

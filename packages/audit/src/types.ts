@@ -1,4 +1,4 @@
-/** Public types for @atelier/audit. */
+/** Public types for @atelier-oss/audit. */
 
 export type AuditSection =
   | 'tokenUsage'

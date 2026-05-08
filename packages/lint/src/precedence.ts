@@ -3,7 +3,7 @@
  *
  * Phase 2.2 ships the typed scaffold; the actual rule body is gated on
  * Phase 2.4 (spec/DESIGN.md.spec.md). Until then, this returns no findings —
- * keeping `pnpm --filter @atelier/lint test` 0-diff vs upstream by design.
+ * keeping `pnpm --filter @atelier-oss/lint test` 0-diff vs upstream by design.
  */
 
 import type { Finding, LintReport } from '@google/design.md/linter';

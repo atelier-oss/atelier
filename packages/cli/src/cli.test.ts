@@ -1,5 +1,5 @@
 /**
- * Integration tests for @atelier/cli — the 4-line golden-path gate.
+ * Integration tests for @atelier-oss/cli — the 4-line golden-path gate.
  *
  * Tests run against compiled dist/ to mirror what users get via npm/pnpm
  * dlx. Each test creates a tmp dir, runs the bin via execFileSync, asserts

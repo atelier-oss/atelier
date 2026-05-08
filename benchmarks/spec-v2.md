@@ -86,7 +86,7 @@ strictness level that passes is forbidden.
 - Dropouts policy: same (no source files / signal < 10).
 - Aggregation: same (sum tokens and raw across kept repos in the arm; conformance = tokens / (tokens + raw)).
 - Inline color refs (`#hex`, `rgb()`, `hsl()`) are still RAW unconditionally.
-- TS classifier (`@atelier/classify`): unchanged. v2 is Python-side analysis only. The published TS API surface stays at v1; if v2 produces a publishable result, the TS port is updated in a follow-up release.
+- TS classifier (`@atelier-oss/classify`): unchanged. v2 is Python-side analysis only. The published TS API surface stays at v1; if v2 produces a publishable result, the TS port is updated in a follow-up release.
 
 ## Lock
 

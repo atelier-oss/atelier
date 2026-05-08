@@ -60,7 +60,7 @@ env -u GITHUB_TOKEN gh repo edit atelier-oss/atelier --visibility public --accep
    - Name: `atelier-oss-ci`
    - Expiration: 1 year
    - Permissions: Read and write
-   - Packages: `@atelier/*` (scope-restricted)
+   - Packages: `@atelier-oss/*` (scope-restricted)
    - Save the token (you'll only see it once)
 
 2. Add to repo secrets:
@@ -86,8 +86,8 @@ env -u GITHUB_TOKEN gh run watch -R atelier-oss/atelier
 ```
 
 Verify after publish:
-- `npm view @atelier/cli version` returns `0.1.0`
-- Provenance attestation visible at https://www.npmjs.com/package/@atelier/cli
+- `npm view @atelier-oss/cli version` returns `0.1.0`
+- Provenance attestation visible at https://www.npmjs.com/package/@atelier-oss/cli
 
 ## Step 7: Open the upstream PR (10 min)
 
@@ -107,7 +107,7 @@ env -u GITHUB_TOKEN gh pr create --draft --title "spec: precedence rule + canoni
 
 ## Rollback (if anything goes wrong)
 
-- Bad publish: `npm deprecate @atelier/<pkg>@0.1.0 "reason"` and ship 0.1.1.
+- Bad publish: `npm deprecate @atelier-oss/<pkg>@0.1.0 "reason"` and ship 0.1.1.
   npm unpublish window is 72 hours — after that, deprecation only.
 - Repo move regret: `gh repo transfer atelier-oss/atelier 7alexhale5-rgb`
 - npm token leak: `npm token revoke <token-id>` immediately, regenerate, update secret.

@@ -71,16 +71,16 @@ importers:
 
   packages/cli:
     dependencies:
-      '@atelier/atlas':
+      '@atelier-oss/atlas':
         specifier: workspace:*
         version: link:../atlas
-      '@atelier/audit':
+      '@atelier-oss/audit':
         specifier: workspace:*
         version: link:../audit
-      '@atelier/classify':
+      '@atelier-oss/classify':
         specifier: workspace:*
         version: link:../classify
-      '@atelier/lint':
+      '@atelier-oss/lint':
         specifier: workspace:*
         version: link:../lint
       citty:
@@ -121,16 +121,16 @@ importers:
 
   packages/mcp-server:
     dependencies:
-      '@atelier/atlas':
+      '@atelier-oss/atlas':
         specifier: workspace:*
         version: link:../atlas
-      '@atelier/audit':
+      '@atelier-oss/audit':
         specifier: workspace:*
         version: link:../audit
-      '@atelier/classify':
+      '@atelier-oss/classify':
         specifier: workspace:*
         version: link:../classify
-      '@atelier/lint':
+      '@atelier-oss/lint':
         specifier: workspace:*
         version: link:../lint
       '@modelcontextprotocol/sdk':

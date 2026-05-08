@@ -16,12 +16,12 @@ Tokens drift across projects when there's no machine-checkable contract. AI agen
 
 | Package | Role |
 |---|---|
-| [`@atelier/cli`](./packages/cli) | `atelier init` / `lint` / `classify` / `audit` / `atlas` — the everyday binary |
-| [`@atelier/lint`](./packages/lint) | Wraps [`@google/design.md@0.1.1`](https://www.npmjs.com/package/@google/design.md) (Apache-2.0) and adds the precedence rule + 8 canonical sub-token roles |
-| [`@atelier/classify`](./packages/classify) | Token-vs-raw scorer — the engine behind the +105% number |
-| [`@atelier/atlas`](./packages/atlas) | Fingerprint a project, get a build-category default-DNA — 7 categories: saas-dashboard, multi-llm-synthesis, marketing-landing, conversational-agent-ui, internal-ops, trading-analytics, marketplace-listing |
-| [`@atelier/audit`](./packages/audit) | 6-section project audit: token usage, contrast, motion, accessibility, design coverage, responsive |
-| [`@atelier/mcp-server`](./packages/mcp-server) | MCP stdio server exposing the above as `atelier_lint` / `atelier_classify` / `atelier_audit` / `atelier_atlas_fingerprint` |
+| [`@atelier-oss/cli`](./packages/cli) | `atelier init` / `lint` / `classify` / `audit` / `atlas` — the everyday binary |
+| [`@atelier-oss/lint`](./packages/lint) | Wraps [`@google/design.md@0.1.1`](https://www.npmjs.com/package/@google/design.md) (Apache-2.0) and adds the precedence rule + 8 canonical sub-token roles |
+| [`@atelier-oss/classify`](./packages/classify) | Token-vs-raw scorer — the engine behind the +105% number |
+| [`@atelier-oss/atlas`](./packages/atlas) | Fingerprint a project, get a build-category default-DNA — 7 categories: saas-dashboard, multi-llm-synthesis, marketing-landing, conversational-agent-ui, internal-ops, trading-analytics, marketplace-listing |
+| [`@atelier-oss/audit`](./packages/audit) | 6-section project audit: token usage, contrast, motion, accessibility, design coverage, responsive |
+| [`@atelier-oss/mcp-server`](./packages/mcp-server) | MCP stdio server exposing the above as `atelier_lint` / `atelier_classify` / `atelier_audit` / `atelier_atlas_fingerprint` |
 
 Each package ships independently via [changesets](https://github.com/changesets/changesets).
 
@@ -29,7 +29,7 @@ Each package ships independently via [changesets](https://github.com/changesets/
 
 ```bash
 # Install the CLI globally
-npm install -g @atelier/cli
+npm install -g @atelier-oss/cli
 
 # In a project root
 atelier init                                  # writes a starter DESIGN.md
@@ -61,7 +61,7 @@ The kept-alive MVB lives at [`benchmarks/`](./benchmarks/). Re-run anytime:
 
 ```bash
 python3 -m benchmarks.runner       # corpus walk + scoring
-python3 -m benchmarks.parity_check # 60/60 oracle for @atelier/classify TS port
+python3 -m benchmarks.parity_check # 60/60 oracle for @atelier-oss/classify TS port
 ```
 
 ## License

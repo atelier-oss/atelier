@@ -33,7 +33,7 @@ will be updated once a path forward is chosen and re-run.
 This PR proposes two additive extensions to the DESIGN.md spec, derived
 from observed naming patterns across 4 production DESIGN.md files in
 independent codebases. Both extensions are also implemented downstream in
-[`@atelier/lint`](https://www.npmjs.com/package/@atelier/lint) (wraps this
+[`@atelier-oss/lint`](https://www.npmjs.com/package/@atelier-oss/lint) (wraps this
 package); upstreaming collapses the wrap.
 
 ### 1. Precedence rule
@@ -108,8 +108,8 @@ Both extensions are additive:
 Atelier ships a wrapper that adds these checks on top of the upstream linter
 pinned at exact `0.1.1`. Source:
 
-- [`@atelier/lint` precedence layer](../packages/lint/src/precedence.ts)
-- [`@atelier/lint` sub-token check](../packages/lint/src/sub-tokens.ts)
+- [`@atelier-oss/lint` precedence layer](../packages/lint/src/precedence.ts)
+- [`@atelier-oss/lint` sub-token check](../packages/lint/src/sub-tokens.ts)
 - [Spec doc](../spec/DESIGN.md.spec.md)
 
 ### Questions for maintainers

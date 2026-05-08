@@ -1,5 +1,5 @@
 /**
- * @atelier/audit — TS port of benchmarks/audit_home_dashboard.py.
+ * @atelier-oss/audit — TS port of benchmarks/audit_home_dashboard.py.
  *
  * Six-section project audit (tokenUsage, contrast, motion, accessibility,
  * designCoverage, responsive). PFOS event emit is opt-in.

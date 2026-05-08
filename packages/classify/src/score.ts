@@ -3,7 +3,7 @@
  *
  * Both implementations agree on every row of benchmarks/fixtures/classify-parity.yaml.
  * If you edit this file, run BOTH gates:
- *   - pnpm --filter @atelier/classify test
+ *   - pnpm --filter @atelier-oss/classify test
  *   - python3 -m benchmarks.parity_check
  */
 

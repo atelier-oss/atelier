@@ -8,10 +8,10 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { z } from 'zod';
-import { lintDesignMd } from '@atelier/lint';
-import { scoreRepo } from '@atelier/classify';
-import { audit as runAudit } from '@atelier/audit';
-import { fingerprint } from '@atelier/atlas';
+import { lintDesignMd } from '@atelier-oss/lint';
+import { scoreRepo } from '@atelier-oss/classify';
+import { audit as runAudit } from '@atelier-oss/audit';
+import { fingerprint } from '@atelier-oss/atlas';
 
 export type ToolEnvelope<T> = { ok: true; data: T } | { ok: false; error: string };
 

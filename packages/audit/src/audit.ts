@@ -1,5 +1,5 @@
 /**
- * @atelier/audit — TS port of benchmarks/audit_home_dashboard.py.
+ * @atelier-oss/audit — TS port of benchmarks/audit_home_dashboard.py.
  *
  * Six section runners: tokenUsage, contrast, motion, accessibility,
  * designCoverage, responsive. The Python reference lives at

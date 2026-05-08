@@ -1,5 +1,5 @@
 /**
- * Public types for @atelier/lint.
+ * Public types for @atelier-oss/lint.
  *
  * The upstream `LintReport` from @google/design.md is exposed verbatim via
  * the `upstream` field. The Atelier extension fields layer on top.

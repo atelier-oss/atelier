@@ -8,7 +8,7 @@ This product includes software developed by Google LLC and contributors:
   Licensed under the Apache License, Version 2.0
   https://www.apache.org/licenses/LICENSE-2.0
 
-  @atelier/lint depends on @google/design.md as a runtime dependency
+  @atelier-oss/lint depends on @google/design.md as a runtime dependency
   and re-exports portions of its linter API. The original Apache-2.0
   LICENSE and any upstream NOTICE file are preserved in the installed
   package under node_modules/@google/design.md/.

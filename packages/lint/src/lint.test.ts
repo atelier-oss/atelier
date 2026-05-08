@@ -1,7 +1,7 @@
 /**
  * 0-diff gate for Phase 2.2.
  *
- * Confirms @atelier/lint produces the same findings as the raw
+ * Confirms @atelier-oss/lint produces the same findings as the raw
  * @google/design.md upstream lint on 4 real DESIGN.md files. The Atelier
  * precedence layer is intentionally a no-op without atlas input, so any
  * diff would mean the wrapper is mishandling upstream output.

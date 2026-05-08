@@ -1,5 +1,5 @@
 {
-  "name": "@atelier/mcp-server",
+  "name": "@atelier-oss/mcp-server",
   "version": "0.1.0",
   "description": "MCP server exposing Atelier tools (lint, classify, audit, atlas_fingerprint) over stdio.",
   "license": "MIT",
@@ -30,10 +30,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@atelier/atlas": "workspace:*",
-    "@atelier/audit": "workspace:*",
-    "@atelier/classify": "workspace:*",
-    "@atelier/lint": "workspace:*",
+    "@atelier-oss/atlas": "workspace:*",
+    "@atelier-oss/audit": "workspace:*",
+    "@atelier-oss/classify": "workspace:*",
+    "@atelier-oss/lint": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.25.76"
   },

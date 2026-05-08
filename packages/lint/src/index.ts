@@ -1,5 +1,5 @@
 /**
- * @atelier/lint — DESIGN.md linter.
+ * @atelier-oss/lint — DESIGN.md linter.
  *
  * Wraps @google/design.md@0.1.1 (Apache-2.0) and layers the Atelier
  * precedence rule (explicit > atlas > palette). The 8 sub-token vocabulary

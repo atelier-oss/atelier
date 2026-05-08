@@ -1,5 +1,5 @@
 /**
- * Parity test for @atelier/classify.
+ * Parity test for @atelier-oss/classify.
  *
  * Loads benchmarks/fixtures/classify-parity.yaml and asserts every row.
  * Phase 2.1 ships when this passes 60/60 AND the Python parity oracle does too.

@@ -1,5 +1,5 @@
 /**
- * @atelier/atlas — build-category fingerprinter + shards.
+ * @atelier-oss/atlas — build-category fingerprinter + shards.
  *
  * Given a project root, infer one of 7 build categories using a hybrid of
  * file-path signatures and package.json deps. Heuristic; per-project

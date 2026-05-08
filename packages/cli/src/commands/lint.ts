@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { defineCommand } from 'citty';
-import { lintDesignMd, type AtelierLintResult } from '@atelier/lint';
+import { lintDesignMd, type AtelierLintResult } from '@atelier-oss/lint';
 
 export type Format = 'stdout' | 'json' | 'md';
 

@@ -29,7 +29,7 @@ const TOOLS = [
   {
     name: 'atelier_lint',
     description:
-      'Lint a DESIGN.md file using @atelier/lint (wraps @google/design.md@0.1.1 with the precedence rule).',
+      'Lint a DESIGN.md file using @atelier-oss/lint (wraps @google/design.md@0.1.1 with the precedence rule).',
     inputSchema: {
       type: 'object',
       required: ['path'],
@@ -43,7 +43,7 @@ const TOOLS = [
   },
   {
     name: 'atelier_classify',
-    description: 'Score a project for token-vs-raw conformance (@atelier/classify).',
+    description: 'Score a project for token-vs-raw conformance (@atelier-oss/classify).',
     inputSchema: {
       type: 'object',
       required: ['path'],
@@ -58,7 +58,7 @@ const TOOLS = [
   {
     name: 'atelier_audit',
     description:
-      'Run the 6-section design audit (token usage, contrast, motion, a11y, design coverage, responsive) via @atelier/audit.',
+      'Run the 6-section design audit (token usage, contrast, motion, a11y, design coverage, responsive) via @atelier-oss/audit.',
     inputSchema: {
       type: 'object',
       required: ['root'],
@@ -73,7 +73,7 @@ const TOOLS = [
   },
   {
     name: 'atelier_atlas_fingerprint',
-    description: 'Fingerprint a project root and return its build category (@atelier/atlas).',
+    description: 'Fingerprint a project root and return its build category (@atelier-oss/atlas).',
     inputSchema: {
       type: 'object',
       required: ['path'],

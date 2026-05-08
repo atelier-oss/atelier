@@ -1,5 +1,5 @@
 {
-  "name": "@atelier/atlas",
+  "name": "@atelier-oss/atlas",
   "version": "0.1.0",
   "description": "Build-category atlas — fingerprint a project, get default DESIGN.md DNA + exemplars.",
   "license": "MIT",

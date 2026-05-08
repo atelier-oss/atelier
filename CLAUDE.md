@@ -12,7 +12,7 @@ Phase 1 MVB result (2026-05-07): DESIGN.md group 79.9% token conformance vs 39.0
 
 ```
 atelier/
-├── packages/{cli,lint,classify,atlas,audit,mcp-server}/  — published to @atelier/*
+├── packages/{cli,lint,classify,atlas,audit,mcp-server}/  — published to @atelier-oss/*
 ├── spec/DESIGN.md.spec.md                                 — canonical spec extension
 ├── benchmarks/                                            — parity oracle + MVB harness
 ├── library/                                               — internal asset DB (gitignored)
@@ -23,12 +23,12 @@ atelier/
 
 | Package               | Role                                                                                         |
 | --------------------- | -------------------------------------------------------------------------------------------- |
-| `@atelier/cli`        | `npx @atelier/cli init/lint/classify/audit/atlas`                                            |
-| `@atelier/lint`       | wraps `@google/design.md@0.1.1` (Apache-2.0) + precedence rule + 8 sub-tokens                |
-| `@atelier/classify`   | token-vs-raw scorer (TS port of `benchmarks/score.py`)                                       |
-| `@atelier/atlas`      | 7 build-category shards + fingerprint(repoPath) → category                                   |
-| `@atelier/audit`      | 6-section project audit (token usage, contrast, motion, a11y, design coverage, responsive)   |
-| `@atelier/mcp-server` | MCP tools — `atelier_lint`, `atelier_classify`, `atelier_audit`, `atelier_atlas_fingerprint` |
+| `@atelier-oss/cli`        | `npx @atelier-oss/cli init/lint/classify/audit/atlas`                                            |
+| `@atelier-oss/lint`       | wraps `@google/design.md@0.1.1` (Apache-2.0) + precedence rule + 8 sub-tokens                |
+| `@atelier-oss/classify`   | token-vs-raw scorer (TS port of `benchmarks/score.py`)                                       |
+| `@atelier-oss/atlas`      | 7 build-category shards + fingerprint(repoPath) → category                                   |
+| `@atelier-oss/audit`      | 6-section project audit (token usage, contrast, motion, a11y, design coverage, responsive)   |
+| `@atelier-oss/mcp-server` | MCP tools — `atelier_lint`, `atelier_classify`, `atelier_audit`, `atelier_atlas_fingerprint` |
 
 ## Conventions
 

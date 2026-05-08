@@ -1,5 +1,5 @@
 /**
- * @atelier/classify — token-vs-raw classifier.
+ * @atelier-oss/classify — token-vs-raw classifier.
  *
  * TS port of benchmarks/score.py. Both implementations are validated against
  * benchmarks/fixtures/classify-parity.yaml; never let them drift.

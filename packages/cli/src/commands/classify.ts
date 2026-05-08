@@ -1,5 +1,5 @@
 import { defineCommand } from 'citty';
-import { scoreRepo, type RepoScoreResult } from '@atelier/classify';
+import { scoreRepo, type RepoScoreResult } from '@atelier-oss/classify';
 import type { Format } from './lint';
 
 export interface RunClassifyOptions {

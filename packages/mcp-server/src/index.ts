@@ -1,5 +1,5 @@
 /**
- * @atelier/mcp-server — programmatic surface.
+ * @atelier-oss/mcp-server — programmatic surface.
  *
  * The MCP stdio entry lives in `server.ts`. This module re-exports the
  * pure tool handlers so callers can invoke them directly without spawning

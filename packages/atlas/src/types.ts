@@ -1,4 +1,4 @@
-/** Public types for @atelier/atlas. */
+/** Public types for @atelier-oss/atlas. */
 
 export type BuildCategory =
   | 'saas-dashboard'

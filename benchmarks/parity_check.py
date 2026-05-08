@@ -1,6 +1,6 @@
 """Validates that benchmarks/score.py emits expected verdicts on classify-parity.yaml.
 
-This is the parity oracle for @atelier/classify. The TS port (Phase 2.1) loads
+This is the parity oracle for @atelier-oss/classify. The TS port (Phase 2.1) loads
 the same YAML and must match every row. Run before AND after each TS edit:
 
     python3 -m benchmarks.parity_check          # from repo root

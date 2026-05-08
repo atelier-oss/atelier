@@ -1,5 +1,5 @@
 {
-  "name": "@atelier/cli",
+  "name": "@atelier-oss/cli",
   "version": "0.1.0",
   "description": "Atelier CLI — DESIGN.md-aware design-token toolkit. v0 generates. Cursor edits. Atelier enforces.",
   "license": "MIT",
@@ -31,10 +31,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@atelier/atlas": "workspace:*",
-    "@atelier/audit": "workspace:*",
-    "@atelier/classify": "workspace:*",
-    "@atelier/lint": "workspace:*",
+    "@atelier-oss/atlas": "workspace:*",
+    "@atelier-oss/audit": "workspace:*",
+    "@atelier-oss/classify": "workspace:*",
+    "@atelier-oss/lint": "workspace:*",
     "citty": "^0.1.6"
   },
   "devDependencies": {
