@@ -39,6 +39,10 @@ interface FixtureRun {
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 const CORPUS_DIR = join(HERE, 'golden-corpus');
+// TODO(Phase 2 gate): execute the 5-fresh-repos-with-screenshot eval and
+// record the result in eval/PHASE-2-FINDINGS.md before Phase 3 begins.
+// Per the plan's Karpathy ladder, Phase 2 is not "done" until its gate
+// (≥75% conformance on first iteration with screenshot ref) is measured.
 // Phase 1 gate: 95% avg conformance with no individual fixture below 75%.
 // (Phase 0 gate of 50% avg is now trivially cleared by the Phase 1 loop.)
 const PHASE_1_GATE_AVG = 0.95;

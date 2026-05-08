@@ -6,12 +6,21 @@
  * codegen user message. Returns the parsed code + token usage. No retries
  * beyond what the SDK provides; no streaming; no tools.
  *
+ * Phase 2 additions:
+ *   - When screenshot is provided, the user message becomes a content array
+ *     with an image block (base64) followed by the text brief block.
+ *   - When projectContextPreamble is provided, it is prepended to the system
+ *     prompt before the token-discipline rules.
+ *
  * CARL [OPUS-4-7] sampling policy: do NOT pass temperature / top_p / top_k.
  * Adaptive thinking only (Sonnet 4.6 uses its default thinking behavior;
  * we do not pass a `thinking` param).
  */
 
 import type Anthropic from '@anthropic-ai/sdk';
+import type { MessageParam } from '@anthropic-ai/sdk/resources/messages';
+import { loadScreenshot } from '../adapters/screenshot';
+import type { ImageContentBlock } from '../adapters/screenshot';
 import { buildCodegenUserMessage } from '../prompts/codegen';
 import { SYSTEM_PROMPT } from '../prompts/system';
 import type { CodeFile } from '../types';
@@ -21,6 +30,10 @@ export interface GenerateInput {
   client: Anthropic;
   model: string;
   maxOutputTokens: number;
+  /** Absolute path to a reference screenshot to include as a vision input. */
+  screenshot?: string;
+  /** Formatted project-context preamble to prepend to the system prompt. */
+  projectContextPreamble?: string;
 }
 
 export interface GenerateOutput {
@@ -50,13 +63,36 @@ function extractCode(rawText: string): { content: string; path: string } {
   return { content, path: `${componentName}.tsx` };
 }
 
+/** Build the user message content: either a plain string or an image+text array. */
+async function buildUserMessageContent(
+  brief: string,
+  screenshot: string | undefined,
+): Promise<MessageParam['content']> {
+  const textBlock = buildCodegenUserMessage(brief, screenshot !== undefined);
+
+  if (!screenshot) {
+    return textBlock;
+  }
+
+  const imageBlock: ImageContentBlock = await loadScreenshot(screenshot);
+  return [imageBlock, { type: 'text', text: textBlock }];
+}
+
+/** Build the effective system prompt, optionally prepending project context. */
+function buildSystemPrompt(projectContextPreamble: string | undefined): string {
+  if (!projectContextPreamble) return SYSTEM_PROMPT;
+  return `${projectContextPreamble}\n\n${SYSTEM_PROMPT}`;
+}
+
 export async function generate(input: GenerateInput): Promise<GenerateOutput> {
-  const userMessage = buildCodegenUserMessage(input.brief);
+  const userContent = await buildUserMessageContent(input.brief, input.screenshot);
+  const systemPrompt = buildSystemPrompt(input.projectContextPreamble);
+
   const response = await input.client.messages.create({
     model: input.model,
     max_tokens: input.maxOutputTokens,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userMessage }],
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userContent }],
   });
 
   const textBlock = response.content.find(

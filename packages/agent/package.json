@@ -1,7 +1,7 @@
 {
   "name": "@atelier-oss/agent",
-  "version": "0.1.0",
-  "description": "Atelier Design Agent — text-brief-to-token-conformant React/Tailwind code via Sonnet + atelier_classify. Phase 1 ships the closed-loop iteration that lifts soft-color-language briefs.",
+  "version": "0.2.0",
+  "description": "Atelier Design Agent — text-brief-to-token-conformant React/Tailwind code via Sonnet + atelier_classify. Phase 2 adds screenshot vision input and atlas fingerprint project-context augmentation.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
+    "@atelier-oss/atlas": "workspace:*",
     "@atelier-oss/classify": "workspace:*"
   },
   "devDependencies": {
