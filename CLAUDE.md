@@ -1,6 +1,27 @@
 # Atelier — Project Context
 
+
+For design work, read `~/.claude/references/design-quality-floor.md` and view the accepted reference. It sets the shared fidelity floor with creative freedom. Use these resources as starting material, not a fixed palette or layout.
+
 Public OSS toolkit for projects using `DESIGN.md` (Google Labs spec). Pitch: **v0 generates. Cursor edits. Atelier enforces.**
+
+## Where to go
+
+| Task                                              | Go to                                          | Read                           | Skills |
+| ------------------------------------------------- | ---------------------------------------------- | ------------------------------ | ------ |
+| Any of the 6 published packages, or `agent/`      | [packages/CONTEXT.md](packages/CONTEXT.md)     | `packages/<name>/src/index.ts` | —      |
+| Parity oracle, MVB harness, benchmark results     | [benchmarks/CONTEXT.md](benchmarks/CONTEXT.md) | `benchmarks/spec-v2.md`        | —      |
+| `DESIGN.md` spec extension                        | [spec/CONTEXT.md](spec/CONTEXT.md)             | `spec/DESIGN.md.spec.md`       | —      |
+| Upstream PR draft, launch sequence, version plans | [docs/CONTEXT.md](docs/CONTEXT.md)             | `docs/v0.2.0-plan.md`          | —      |
+
+Root files that stay put: `CLAUDE.md`/`AGENTS.md` (router), `README.md`, `NOTICE` (Apache-2.0
+attribution for `@google/design.md`), `CONTRIBUTING.md`, `LICENSE`, `package.json`/
+`pnpm-workspace.yaml`/`tsconfig.base.json` (tooling paths).
+
+## Naming
+
+`packages/<name>/` one per published `@atelier-oss/*` package; `benchmarks/spec-vN.md` +
+`benchmarks/results/YYYY-MM-DD-phase-N-vM.md` per benchmark phase.
 
 ## Status
 
